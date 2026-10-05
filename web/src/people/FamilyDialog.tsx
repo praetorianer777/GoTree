@@ -34,6 +34,7 @@ function FamilyForm({ family, onClose }: Omit<Props, 'open'>) {
 
   const done = () => {
     void queryClient.invalidateQueries({ queryKey: ['person'] })
+      void queryClient.invalidateQueries({ queryKey: ['tree'] })
     onClose()
   }
   const save = useMutation({

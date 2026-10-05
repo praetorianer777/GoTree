@@ -271,5 +271,41 @@
     "MARR": "Marriage",
     "DIV": "Divorce",
     "ANUL": "Annulment"
+  },
+  "tree": {
+    "titleFor": "Tree of {{name}}",
+    "view": "View",
+    "views": {
+      "pedigree": "Ancestors (pedigree)",
+      "descendants": "Descendants",
+      "hourglass": "Ancestors and descendants",
+      "family": "Family group"
+    },
+    "generations": "Generations",
+    "centerOn": "Center on",
+    "bloodOnly": "Blood relatives only",
+    "display": "Display as",
+    "mode": {
+      "chart": "Chart",
+      "list": "List"
+    },
+    "count_one": "{{count}} person shown.",
+    "count_other": "{{count}} people shown.",
+    "truncated": "The tree is too large to show completely; reduce the generations or center on someone else.",
+    "empty": "There is no one in your tree yet. Add a person first.",
+    "chartLabel": "Family tree chart",
+    "chartHelp": "Use the arrow keys to move between people: up to parents, down to children, left and right within a generation. Press Enter to select a person.",
+    "minimap": "Overview of the whole chart",
+    "rootPerson": "center of the tree",
+    "repeat": "{{name}}, shown elsewhere",
+    "alsoAbove": "shown elsewhere in this tree",
+    "ancestors": "Ancestors",
+    "descendants": "Descendants",
+    "partner": "Partner",
+    "parentsOf": "Parents of {{name}}",
+    "childrenOf": "Children of {{name}}",
+    "centerHere": "Center tree here",
+    "openPage": "Open page",
+    "addRelative": "Add a relative"
   }
 }

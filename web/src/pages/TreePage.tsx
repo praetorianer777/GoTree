@@ -1,0 +1,193 @@
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useId, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router'
+import { getTree, listPersons } from '../api/endpoints'
+import type { PersonRef } from '../api/types'
+import { SelectField } from '../components/Field'
+import { PageHeading } from '../components/PageHeading'
+import { fullName } from '../lib/people'
+import { PersonPicker } from '../people/PersonPicker'
+import { layoutTree, type TreeView } from '../tree/layout'
+import { indexGraph } from '../tree/model'
+import { PersonPanel } from '../tree/PersonPanel'
+import { TreeCanvas } from '../tree/TreeCanvas'
+import { TreeList } from '../tree/TreeList'
+
+const views: TreeView[] = ['pedigree', 'descendants', 'hourglass', 'family']
+const rootKey = 'gotree.treeRoot'
+
+function remembered(): number | null {
+  try {
+    const v = Number(localStorage.getItem(rootKey))
+    return v > 0 ? v : null
+  } catch {
+    return null
+  }
+}
+
+export function TreePage() {
+  const { t } = useTranslation()
+  const [params, setParams] = useSearchParams()
+  const genId = useId()
+  const modeName = useId()
+
+  const view = (views.includes(params.get('view') as TreeView) ? params.get('view') : 'pedigree') as TreeView
+  const generations = Math.min(10, Math.max(1, Number(params.get('gen')) || 4))
+  const bloodOnly = params.get('blood') === '1'
+  const mode = params.get('mode') === 'list' ? 'list' : 'chart'
+  const rootParam = Number(params.get('root')) || null
+  const selectedId = Number(params.get('sel')) || null
+
+  const set = (patch: Record<string, string | null>, replace = true) =>
+    setParams(
+      (p) => {
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === null) p.delete(k)
+          else p.set(k, v)
+        }
+        return p
+      },
+      { replace },
+    )
+
+  // Without a root in the URL: the last one viewed, else the first person.
+  const fallback = useQuery({
+    queryKey: ['persons', 'first'],
+    queryFn: ({ signal }) => listPersons('', 1, 0, signal),
+    enabled: rootParam === null && remembered() === null,
+  })
+  const rootId = rootParam ?? remembered() ?? fallback.data?.items[0]?.id ?? null
+
+  useEffect(() => {
+    if (rootId === null) return
+    try {
+      localStorage.setItem(rootKey, String(rootId))
+    } catch {
+      // Storage can be unavailable (private mode); the URL still works.
+    }
+  }, [rootId])
+
+  const up = view === 'descendants' ? 0 : view === 'family' ? 1 : generations
+  const down = view === 'pedigree' ? 0 : view === 'family' ? 1 : generations
+  const tree = useQuery({
+    queryKey: ['tree', rootId, up, down, view === 'family'],
+    queryFn: ({ signal }) => getTree(rootId!, { up, down, siblings: view === 'family' }, signal),
+    enabled: rootId !== null,
+  })
+
+  const index = useMemo(() => (tree.data ? indexGraph(tree.data) : null), [tree.data])
+  const layout = useMemo(
+    () => (index ? layoutTree(index, { view, generations, bloodOnly }) : null),
+    [index, view, generations, bloodOnly],
+  )
+  const root = index?.persons.get(index.rootId) ?? null
+  const selected = selectedId !== null ? (index?.persons.get(selectedId) ?? null) : null
+
+  const centerOn = (id: number) => set({ root: String(id), sel: null }, false)
+  const title = root ? t('tree.titleFor', { name: fullName(root) ?? t('person.unknown') }) : t('nav.tree')
+
+  if (rootId === null && !fallback.isPending) {
+    return (
+      <div className="max-w-3xl space-y-4">
+        <PageHeading title={t('nav.tree')}>{t('nav.tree')}</PageHeading>
+        <p>{t('tree.empty')}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <PageHeading title={title}>{title}</PageHeading>
+
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+        <SelectField label={t('tree.view')} value={view} onChange={(e) => set({ view: e.target.value })}>
+          {views.map((v) => (
+            <option key={v} value={v}>
+              {t(`tree.views.${v}`)}
+            </option>
+          ))}
+        </SelectField>
+        <div>
+          <label htmlFor={genId} className="block text-sm font-medium">
+            {t('tree.generations')}
+          </label>
+          <div className="mt-1 flex min-h-11 items-center gap-3">
+            <input
+              id={genId}
+              type="range"
+              min={1}
+              max={10}
+              value={view === 'family' ? 1 : generations}
+              disabled={view === 'family'}
+              onChange={(e) => set({ gen: e.target.value })}
+              className="w-full accent-brand-700"
+            />
+            <output htmlFor={genId} className="w-6 text-right font-medium">
+              {view === 'family' ? 1 : generations}
+            </output>
+          </div>
+        </div>
+        <div className="col-span-2 md:col-span-1">
+          <PersonPicker label={t('tree.centerOn')} value={null} onChange={(p: PersonRef | null) => p && centerOn(p.id)} />
+        </div>
+        <div className="col-span-2 flex flex-col gap-2 md:col-span-1">
+          <label className="flex min-h-11 items-center gap-2">
+            <input
+              type="checkbox"
+              className="size-5"
+              checked={bloodOnly}
+              disabled={view === 'pedigree'}
+              onChange={(e) => set({ blood: e.target.checked ? '1' : null })}
+            />
+            {t('tree.bloodOnly')}
+          </label>
+        </div>
+      </div>
+
+      <fieldset className="flex gap-1 rounded-lg border border-slate-300 p-1 dark:border-slate-700">
+        <legend className="sr-only">{t('tree.display')}</legend>
+        {(['chart', 'list'] as const).map((m) => (
+          <label
+            key={m}
+            className="flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-md font-medium has-[:checked]:bg-brand-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-brand-500"
+          >
+            <input type="radio" name={modeName} className="sr-only" checked={mode === m} onChange={() => set({ mode: m === 'list' ? 'list' : null })} />
+            {t(`tree.mode.${m}`)}
+          </label>
+        ))}
+      </fieldset>
+
+      <p role="status" className="text-sm text-slate-600 dark:text-slate-400">
+        {tree.isPending
+          ? t('app.loading')
+          : tree.isError
+            ? t('common.loadFailed')
+            : [t('tree.count', { count: index?.persons.size ?? 0 }), tree.data?.truncated ? t('tree.truncated') : '']
+                .filter(Boolean)
+                .join(' ')}
+      </p>
+
+      {index && layout && (
+        <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+          {mode === 'chart' ? (
+            <div className="h-[65dvh] min-h-[420px] overflow-hidden rounded-xl border border-slate-200 md:h-[calc(100dvh-20rem)] dark:border-slate-800">
+              <TreeCanvas
+                layout={layout}
+                index={index}
+                selectedId={selectedId}
+                onSelect={(id) => set({ sel: String(id) })}
+                onCenter={centerOn}
+              />
+            </div>
+          ) : (
+            <TreeList index={index} view={view} generations={generations} bloodOnly={bloodOnly} />
+          )}
+          {selected && (
+            <PersonPanel person={selected} isRoot={selected.id === index.rootId} onCenter={centerOn} onClose={() => set({ sel: null })} />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

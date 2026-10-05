@@ -139,3 +139,20 @@ func TestAddRelativeAndDatePreview(t *testing.T) {
 		t.Errorf("empty date: %+v", d)
 	}
 }
+
+func TestTreeEndpoint(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	c := loggedIn(t, ts)
+	var paul store.Person
+	c.call("POST", "/api/persons", map[string]any{"givenNames": "Paul"}, http.StatusCreated, &paul)
+	c.call("POST", fmt.Sprintf("/api/persons/%d/relatives", paul.ID), map[string]any{
+		"relation": "parent", "person": map[string]any{"givenNames": "Hans"},
+	}, http.StatusCreated, nil)
+
+	var g store.TreeGraph
+	c.call("GET", fmt.Sprintf("/api/tree/%d?up=2", paul.ID), nil, http.StatusOK, &g)
+	if g.RootID != paul.ID || len(g.Persons) != 2 || len(g.Families) != 1 {
+		t.Errorf("tree: %+v", g)
+	}
+	c.call("GET", "/api/tree/999", nil, http.StatusNotFound, nil)
+}

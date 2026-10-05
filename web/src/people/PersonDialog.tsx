@@ -57,6 +57,7 @@ function PersonDialogForm({ person, onClose, onSaved }: Omit<Props, 'open'>) {
     onSuccess: (p) => {
       void queryClient.invalidateQueries({ queryKey: ['persons'] })
       void queryClient.invalidateQueries({ queryKey: ['person'] })
+      void queryClient.invalidateQueries({ queryKey: ['tree'] })
       onSaved(p)
     },
   })
