@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo-readme.jpg" alt="GoTree — Go-powered genealogy software" width="360">
+</p>
+
 # GoTree
 
 A lightweight, self-hosted family tree app. One Go binary with an embedded React UI and a single
@@ -28,3 +32,6 @@ pre-push hook and CI use.
 ## License
 
 [AGPL-3.0](LICENSE)
+
+The logo builds on the Go gopher, designed by [Renée French](https://reneefrench.blogspot.com/) and
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
