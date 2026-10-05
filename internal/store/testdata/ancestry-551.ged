@@ -1,0 +1,89 @@
+0 HEAD
+1 SOUR Ancestry.com Family Trees
+2 NAME Ancestry.com Member Trees
+2 VERS 2021.07
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @R1@ REPO
+1 NAME Stadtarchiv Leipzig
+1 ADDR Torgauer Straße 74
+2 CITY Leipzig
+2 CTRY Deutschland
+1 _URL www.leipzig.de/stadtarchiv
+0 @S1@ SOUR
+1 TITL Kirchenbuch St. Thomas, Taufen 1880-1900
+1 AUTH Ev.-luth. Kirchgemeinde St. Thomas
+1 REPO @R1@
+2 CALN KB 12
+1 _APID 1,1234::0
+0 @N1@ NOTE Die Familie stammt aus Sachsen.
+1 CONT Zweite Zeile der Notiz.
+0 @I1@ INDI
+1 NAME Johann /Weber/
+2 GIVN Johann
+2 SURN Weber
+1 SEX M
+1 BIRT
+2 DATE 3 FEB 1855
+2 PLAC Leipzig, Sachsen, Deutschland
+3 MAP
+4 LATI N51.3397
+4 LONG E12.3731
+2 SOUR @S1@
+3 PAGE S. 12, Nr. 34
+3 QUAY 3
+3 DATA
+4 TEXT Johann, Sohn des Karl Weber
+3 _APID 1,1234::5678
+1 OCCU Weber
+2 DATE ABT 1880
+1 EVEN
+2 TYPE Auswanderungsversuch
+2 DATE 1883
+1 DEAT
+2 DATE 12 Dezember 1920
+2 PLAC Leipzig, Sachsen, Deutschland
+1 NOTE @N1@
+1 _UID 6B5C0D1E2F3A4B5C
+1 CHAN
+2 DATE 1 JAN 2020
+1 OBJE
+2 FILE https://www.ancestry.com/media/abc.jpg
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Maria /Schulz/
+1 _MARNM /Weber/
+1 SEX F
+1 BIRT
+2 DATE 1858
+2 SOUR Familienbibel der Familie Schulz
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Paul /Weber/
+1 SEX M
+1 BIRT
+2 DATE 1885
+2 PLAC Leipzig, Sachsen, Deutschland
+1 FAMC @F1@
+0 @I4@ INDI
+1 NAME Lena /Weber/
+1 SEX F
+1 FAMC @F1@
+2 PEDI adopted
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 CHIL @I3@
+2 _FREL Natural
+2 _MREL Step
+1 CHIL @I4@
+1 MARR
+2 DATE 10 MAY 1884
+2 PLAC Leipzig, Sachsen, Deutschland
+2 SOUR @S1@
+3 PAGE Trauungen 1884, Nr. 7
+0 @SUBM1@ SUBM
+1 NAME Someone
+0 TRLR

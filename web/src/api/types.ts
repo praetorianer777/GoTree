@@ -365,3 +365,23 @@ export interface RegionInput {
   w: number
   h: number
 }
+
+export interface TagStat {
+  path: string
+  count: number
+  outcome: 'mapped' | 'kept' | 'dropped'
+  reason?: string
+}
+
+export interface ImportReport {
+  version: string
+  encoding: string
+  source: string
+  counts: Record<string, number>
+  tags: TagStat[]
+  warnings: { line: number; message: string }[]
+  invalidDates: number
+  invalidDateExamples: string[]
+  brokenReferences: string[]
+  durationMs: number
+}

@@ -25,9 +25,6 @@
     "online": "Server online · version {{version}}",
     "offline": "The server cannot be reached."
   },
-  "placeholder": {
-    "comingSoon": "This page is not built yet."
-  },
   "notFound": {
     "title": "Page not found",
     "back": "Back to the start page"
@@ -418,5 +415,50 @@
     "takenAt": "Taken {{date}}",
     "location": "Location {{lat}}, {{lng}} (map)",
     "addAsEvent": "Add as event for {{name}}"
+  },
+  "transfer": {
+    "importTitle": "Import a GEDCOM file",
+    "importIntro": "GEDCOM is the exchange format of genealogy programs. Export your tree from Ancestry, MyHeritage, FamilySearch, webtrees, Gramps or RootsMagic and import it here. Nothing is lost: what GoTree does not use is kept and written back on export.",
+    "file": "GEDCOM file",
+    "fileHint": "A .ged file, or a .zip / .gdz containing one. GEDCOM 5.5, 5.5.1 and 7.0.",
+    "importButton": "Import",
+    "replaceButton": "Replace the tree",
+    "replaceWarning": "Your tree already has data. Importing replaces its people, families, events, places and sources. Photos stay in the media list.",
+    "replaceTitle": "Replace the tree?",
+    "replaceConfirm_one": "This deletes the {{count}} person in your tree with everything about them and imports the file instead. Consider exporting first.",
+    "replaceConfirm_other": "This deletes the {{count}} people in your tree with everything about them and imports the file instead. Consider exporting first.",
+    "importing": "Importing… large files take a moment.",
+    "notEmpty": "Your tree is not empty. Choose “Replace the tree” to import anyway.",
+    "importFailed": "The import failed: {{message}}",
+    "reportTitle": "Import finished",
+    "reportFrom": "From {{source}}, GEDCOM {{version}} in {{encoding}}, in {{seconds}} s.",
+    "unknownProgram": "an unknown program",
+    "counts": {
+      "persons": "People",
+      "families": "Families",
+      "events": "Events",
+      "places": "Places",
+      "sources": "Sources",
+      "repositories": "Archives",
+      "citations": "Citations"
+    },
+    "viewPeople": "Go to the people",
+    "invalidDates_one": "{{count}} date is not in GEDCOM format",
+    "invalidDates_other": "{{count}} dates are not in GEDCOM format",
+    "invalidDatesHint": "They are kept as written and sorted last. You can correct them later.",
+    "brokenRefs_one": "{{count}} broken reference",
+    "brokenRefs_other": "{{count}} broken references",
+    "brokenRefsHint": "The file points to records it does not contain; these links were skipped.",
+    "warnings_one": "{{count}} problem while reading",
+    "warnings_other": "{{count}} problems while reading",
+    "atLine": "Line {{line}}: {{message}}",
+    "tagsSummary": "What happened to every GEDCOM tag ({{kept}} kept as is, {{dropped}} dropped)",
+    "tagsHint": "Mapped tags became GoTree data. Kept tags are stored unchanged and written back when you export. Dropped tags are listed with the reason.",
+    "keptTitle": "Kept as is",
+    "droppedTitle": "Dropped",
+    "mappedTitle": "Mapped",
+    "tag": "Tag",
+    "count": "Count",
+    "reason": "Reason"
   }
 }

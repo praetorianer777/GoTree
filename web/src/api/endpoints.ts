@@ -21,6 +21,7 @@ import type {
   Media,
   MediaRef,
   RegionInput,
+  ImportReport,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -83,3 +84,6 @@ export const setPortrait = (personId: number, mediaId: number | null, regionId: 
 export const mediaFileUrl = (id: number) => `/api/media/${id}/file`
 export const thumbUrl = (id: number, size: 128 | 256 | 512 | 1024, regionId?: number | null) =>
   `/api/media/${id}/thumb?size=${size}${regionId ? `&region=${regionId}` : ''}`
+
+export const importGedcom = (file: File, mode: 'empty' | 'replace') =>
+  uploadFile<ImportReport>(`/import/gedcom?${qs({ mode })}`, file)

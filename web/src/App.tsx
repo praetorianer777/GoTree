@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import { Route, Routes } from 'react-router'
 import { AuthGate } from './auth/AuthGate'
 import { Layout } from './components/Layout'
@@ -6,7 +5,7 @@ import { Dashboard } from './pages/Dashboard'
 import { NotFound } from './pages/NotFound'
 import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
-import { Placeholder } from './pages/Placeholder'
+import { ImportExportPage } from './pages/ImportExportPage'
 import { MediaListPage } from './pages/MediaListPage'
 import { MediaPage } from './pages/MediaPage'
 import { SourcePage } from './pages/SourcePage'
@@ -14,7 +13,6 @@ import { SourcesPage } from './pages/SourcesPage'
 import { TreePage } from './pages/TreePage'
 
 export function App() {
-  const { t } = useTranslation()
   return (
     <AuthGate>
       <Routes>
@@ -27,7 +25,7 @@ export function App() {
           <Route path="sources/:id" element={<SourcePage />} />
           <Route path="media" element={<MediaListPage />} />
           <Route path="media/:id" element={<MediaPage />} />
-          <Route path="import-export" element={<Placeholder title={t('nav.importExport')} />} />
+          <Route path="import-export" element={<ImportExportPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

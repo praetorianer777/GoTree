@@ -9,6 +9,11 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- GEDCOM import (5.5, 5.5.1 and 7.0, also zipped) from Ancestry, MyHeritage, FamilySearch,
+  webtrees, Gramps or RootsMagic, in UTF-8, UTF-16, ANSI or ANSEL; a report shows what was imported,
+  kept unchanged for the export, or dropped, and lists dates and references that need attention
+  (#17)
+
 - Photos, documents and recordings: upload them to people (stored once even when uploaded twice),
   view, describe and transcribe them, tag faces by drawing a box or import the face tags other
   photo tools wrote, and use a photo or a face as a person's portrait, shown in lists and on the

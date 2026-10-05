@@ -1,0 +1,26 @@
+0 HEAD
+1 GEDC
+2 VERS 7.0
+1 SOUR webtrees
+2 NAME webtrees
+1 SCHMA
+2 TAG _HAIR https://example.org/hair
+0 @N1@ SNOTE Shared note from GEDCOM 7.
+0 @I1@ INDI
+1 NAME Alex /Doe/
+2 TYPE AKA
+1 NAME Alexandra /Doe/
+2 TYPE BIRTH
+1 SEX X
+1 BAPM
+2 DATE JULIAN 4 OCT 1582
+2 ASSO @I2@
+3 ROLE GODP
+1 SNOTE @N1@
+1 _HAIR brown
+1 EXID 12345
+2 TYPE https://www.familysearch.org/tree/person/
+1 FAMC @VOID@
+0 @I2@ INDI
+1 NAME Pat /Godparent/
+0 TRLR
