@@ -1,0 +1,18 @@
+0 HEAD
+1 GEDC
+2 VERS 5.5.1
+0 @I1@ INDI
+1 NAME Only /Person/
+1 BIRT
+2 DATE sometime in spring
+1 DEAT
+2 DATE 31 FEB 1900
+1 FAMS @F404@
+0 @F1@ FAM
+1 HUSB @I1@
+1 CHIL @I1@
+1 CHIL @I999@
+1 _CUSTOM something
+2 _NESTED deeper
+0 @X1@ _WEIRD
+0 TRLR

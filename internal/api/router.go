@@ -58,6 +58,7 @@ func (s *Server) Handler() http.Handler {
 			s.resourceRoutes(r)
 			s.sourceRoutes(r)
 			s.mediaRoutes(r)
+			r.Post("/import/gedcom", s.importGEDCOM)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
