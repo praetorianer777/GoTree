@@ -10,6 +10,8 @@ Repo: `praetorianer777/GoTree` · default branch: `main`
 ## Rules
 
 - Every change needs an issue and a branch named `<type>/<issue>-<slug>`.
+- Every issue belongs to a milestone (`gh issue create --milestone "M7 …"`); the milestones follow
+  the project plan, `v2 Backlog` takes everything not yet scheduled.
   Types: `feat fix chore docs refactor test perf ci build revert`.
 - Never push to `main`. Never merge yourself — that is the user's decision.
 - Agree on issues and PRs with the user before creating them.

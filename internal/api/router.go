@@ -59,6 +59,8 @@ func (s *Server) Handler() http.Handler {
 			s.sourceRoutes(r)
 			s.mediaRoutes(r)
 			r.Post("/import/gedcom", s.importGEDCOM)
+			r.Get("/export/gedcom", s.exportGEDCOM)
+			r.Get("/export/verify", s.verifyExport)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {

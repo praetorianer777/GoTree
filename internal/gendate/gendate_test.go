@@ -138,3 +138,26 @@ func TestSortOrder(t *testing.T) {
 		prev = key
 	}
 }
+
+func TestGEDCOM7(t *testing.T) {
+	tests := []struct{ in, value, phrase string }{
+		{"12 MAR 1850", "12 MAR 1850", ""},
+		{"ABT 1850", "ABT 1850", ""},
+		{"@#DJULIAN@ 4 OCT 1582", "JULIAN 4 OCT 1582", ""},
+		{"44 B.C.", "44 BCE", ""},
+		{"BET 1850 AND 1860", "BET 1850 AND 1860", ""},
+		{"INT 1850 (the year of the fire)", "1850", "the year of the fire"},
+		{"(during the war)", "", "during the war"},
+		{"11 FEB 1731/32", "11 FEB 1731", "11 FEB 1731/32"},
+	}
+	for _, tt := range tests {
+		d, err := Parse(tt.in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		value, phrase := d.GEDCOM7()
+		if value != tt.value || phrase != tt.phrase {
+			t.Errorf("%q: got %q / %q, want %q / %q", tt.in, value, phrase, tt.value, tt.phrase)
+		}
+	}
+}

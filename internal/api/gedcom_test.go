@@ -4,8 +4,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/praetorianer777/gotree/internal/store"
@@ -56,4 +58,53 @@ func TestImportEndpoint(t *testing.T) {
 	if status, _ := c.upload("/api/import/gedcom?mode=replace", "x.zip", empty.Bytes()); status != http.StatusUnprocessableEntity {
 		t.Errorf("zip without gedcom: %d", status)
 	}
+}
+
+func TestExportEndpoints(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	c := loggedIn(t, ts)
+	ged, _ := os.ReadFile("../store/testdata/ancestry-551.ged")
+	if status, _ := c.upload("/api/import/gedcom", "tree.ged", ged); status != http.StatusOK {
+		t.Fatalf("import: %d", status)
+	}
+	if status, _ := c.upload("/api/media", "p.jpg", jpegBytes(t, 20, 10)); status != http.StatusCreated {
+		t.Fatalf("media: %d", status)
+	}
+
+	resp, err := c.http.Get(c.base + "/api/export/gedcom?version=5.5.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !bytes.HasPrefix(body, []byte("0 HEAD\n")) || !strings.Contains(resp.Header.Get("Content-Disposition"), ".ged") {
+		t.Errorf("ged export: %q %v", body[:min(40, len(body))], resp.Header)
+	}
+
+	resp, err = c.http.Get(c.base + "/api/export/gedcom?version=7.0&format=gedzip")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	zr, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, f := range zr.File {
+		names = append(names, f.Name)
+	}
+	// All media are packed, linked to someone or not, so the archive is a
+	// complete copy.
+	if len(names) != 2 || names[0] != "gedcom.ged" || !strings.HasPrefix(names[1], "media/") || !strings.Contains(resp.Header.Get("Content-Disposition"), ".gdz") {
+		t.Errorf("gedzip: %v %v", names, resp.Header)
+	}
+
+	var report store.VerifyReport
+	c.call("GET", "/api/export/verify?version=7.0", nil, http.StatusOK, &report)
+	if !report.OK || len(report.Rows) == 0 {
+		t.Errorf("verify: %+v", report)
+	}
+	c.call("GET", "/api/export/gedcom?privacy=nobody", nil, http.StatusUnprocessableEntity, nil)
 }

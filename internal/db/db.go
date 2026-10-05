@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"strings"
 
 	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite"
@@ -35,7 +36,9 @@ func Open(ctx context.Context, path string) (*sql.DB, error) {
 	q.Add("_pragma", "busy_timeout(5000)")
 	q.Add("_pragma", "synchronous(NORMAL)")
 	q.Set("_txlock", "immediate")
-	dsn := "file:" + path + "?" + q.Encode()
+	// The path is part of a URI: '#' and '?' in a directory name would
+	// otherwise cut it short.
+	dsn := "file:" + strings.NewReplacer("%", "%25", "#", "%23", "?", "%3F").Replace(path) + "?" + q.Encode()
 
 	conn, err := sql.Open("sqlite", dsn)
 	if err != nil {

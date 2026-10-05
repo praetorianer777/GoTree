@@ -9,6 +9,10 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- GEDCOM export as 5.5.1 or 7.0, optionally zipped with all photos and documents, with everyone,
+  living people by name only, or without living people; everything an import could not use is
+  written back, and “Check the export” reads the file back to show that nothing was lost (#19)
+
 - GEDCOM import (5.5, 5.5.1 and 7.0, also zipped) from Ancestry, MyHeritage, FamilySearch,
   webtrees, Gramps or RootsMagic, in UTF-8, UTF-16, ANSI or ANSEL; a report shows what was imported,
   kept unchanged for the export, or dropped, and lists dates and references that need attention
@@ -18,6 +22,10 @@ and the versioning [Semantic Versioning](https://semver.org/).
   view, describe and transcribe them, tag faces by drawing a box or import the face tags other
   photo tools wrote, and use a photo or a face as a person's portrait, shown in lists and on the
   tree (#15)
+
+### Fixed
+
+- A data directory whose path contains `#` or `?` no longer opens the wrong database file (#19)
 
 ### Changed
 
