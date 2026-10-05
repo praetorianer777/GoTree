@@ -1,6 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation } from 'react-router'
+import { getAuthState, logout } from '../api/client'
+import { Button } from './Button'
 import { HomeIcon, PeopleIcon, TransferIcon, TreeIcon } from './icons'
 
 const navItems = [
@@ -15,6 +18,18 @@ export function Layout() {
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
   const firstRender = useRef(true)
+  const queryClient = useQueryClient()
+  const auth = useQuery({ queryKey: ['auth'], queryFn: ({ signal }) => getAuthState(signal), staleTime: Infinity })
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      // Drop everything the previous user loaded, but keep the auth query
+      // mounted so its refetch switches to the login screen.
+      queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' })
+      void queryClient.invalidateQueries({ queryKey: ['auth'] })
+    },
+  })
+  const user = auth.data?.user
 
   // Screen readers get no page-load event on client-side navigation, so focus
   // goes to the new page's heading; on the initial load it stays put.
@@ -39,6 +54,20 @@ export function Layout() {
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <img src="/icons/logo-64.png" alt="" width={32} height={32} className="size-8 rounded-md" />
         <span className="text-lg font-semibold text-brand-700 dark:text-brand-100">{t('app.name')}</span>
+        {auth.data?.tree && (
+          <span className="hidden truncate text-slate-600 sm:inline dark:text-slate-400">· {auth.data.tree.name}</span>
+        )}
+        {user && (
+          <div className="ml-auto flex items-center gap-3">
+            <span className="sr-only">{t('app.signedInAs', { name: user.displayName || user.username })}</span>
+            <span aria-hidden="true" className="hidden text-sm text-slate-600 sm:inline dark:text-slate-400">
+              {user.displayName || user.username}
+            </span>
+            <Button variant="secondary" onClick={() => logoutMutation.mutate()} busy={logoutMutation.isPending}>
+              {t('app.logOut')}
+            </Button>
+          </div>
+        )}
       </header>
 
       <div className="md:flex">

@@ -1,0 +1,497 @@
+package store
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+)
+
+// AlternateName is a further name of a person: birth name, married name, …
+type AlternateName struct {
+	ID           int64  `json:"id"`
+	Type         string `json:"type"`
+	GivenNames   string `json:"givenNames"`
+	Surname      string `json:"surname"`
+	NamePrefix   string `json:"namePrefix"`
+	NameSuffix   string `json:"nameSuffix"`
+	Nickname     string `json:"nickname"`
+	Status       string `json:"status"`
+	StatusReason string `json:"statusReason"`
+	SortOrder    int    `json:"sortOrder"`
+}
+
+// Person is a person's own record.
+type Person struct {
+	ID         int64  `json:"id"`
+	GivenNames string `json:"givenNames"`
+	Surname    string `json:"surname"`
+	NamePrefix string `json:"namePrefix"`
+	NameSuffix string `json:"nameSuffix"`
+	Nickname   string `json:"nickname"`
+	Sex        string `json:"sex"`
+	// IsLiving is what was stated; nil means "infer from the events".
+	IsLiving *bool `json:"isLiving"`
+	// Living is the effective value, stated or inferred.
+	Living         bool            `json:"living"`
+	Notes          string          `json:"notes"`
+	AlternateNames []AlternateName `json:"alternateNames"`
+	CreatedAt      string          `json:"createdAt"`
+	UpdatedAt      string          `json:"updatedAt"`
+}
+
+// PersonRef is the short form of a person used in lists and relations.
+type PersonRef struct {
+	ID         int64  `json:"id"`
+	GivenNames string `json:"givenNames"`
+	Surname    string `json:"surname"`
+	Sex        string `json:"sex"`
+	BirthDate  string `json:"birthDate"`
+	DeathDate  string `json:"deathDate"`
+	Living     bool   `json:"living"`
+}
+
+// AlternateNameInput is the editable part of an AlternateName.
+type AlternateNameInput struct {
+	Type         string `json:"type"`
+	GivenNames   string `json:"givenNames"`
+	Surname      string `json:"surname"`
+	NamePrefix   string `json:"namePrefix"`
+	NameSuffix   string `json:"nameSuffix"`
+	Nickname     string `json:"nickname"`
+	Status       string `json:"status"`
+	StatusReason string `json:"statusReason"`
+}
+
+// PersonInput is the editable part of a Person. AlternateNames replaces the
+// existing list.
+type PersonInput struct {
+	GivenNames     string               `json:"givenNames"`
+	Surname        string               `json:"surname"`
+	NamePrefix     string               `json:"namePrefix"`
+	NameSuffix     string               `json:"nameSuffix"`
+	Nickname       string               `json:"nickname"`
+	Sex            string               `json:"sex"`
+	IsLiving       *bool                `json:"isLiving"`
+	Notes          string               `json:"notes"`
+	AlternateNames []AlternateNameInput `json:"alternateNames"`
+}
+
+// PersonDetail is everything the person page shows.
+type PersonDetail struct {
+	Person
+	// Events are the person's own events plus those they take part in
+	// (with Role set).
+	Events []Event `json:"events"`
+	// ParentFamilies are the families the person is a child of.
+	ParentFamilies []Family `json:"parentFamilies"`
+	// PartnerFamilies are the families the person is a partner in.
+	PartnerFamilies []Family `json:"partnerFamilies"`
+}
+
+// PersonList is one page of a person listing.
+type PersonList struct {
+	Items []PersonRef `json:"items"`
+	Total int         `json:"total"`
+}
+
+var nameTypes = []string{"birth", "married", "aka", "religious", "immigrant", "other"}
+
+// livingCutoffYears: without a death record, someone born longer ago than
+// this is taken to be deceased.
+const livingCutoffYears = 110
+
+func (in *PersonInput) normalize() {
+	trim := strings.TrimSpace
+	in.GivenNames, in.Surname = collapse(in.GivenNames), collapse(in.Surname)
+	in.NamePrefix, in.NameSuffix, in.Nickname = trim(in.NamePrefix), trim(in.NameSuffix), trim(in.Nickname)
+	in.Sex = strings.ToUpper(trim(in.Sex))
+	if in.Sex == "" {
+		in.Sex = "U"
+	}
+	in.Notes = trim(in.Notes)
+	for i := range in.AlternateNames {
+		n := &in.AlternateNames[i]
+		n.Type = strings.ToLower(trim(n.Type))
+		n.GivenNames, n.Surname = collapse(n.GivenNames), collapse(n.Surname)
+		n.NamePrefix, n.NameSuffix, n.Nickname = trim(n.NamePrefix), trim(n.NameSuffix), trim(n.Nickname)
+		n.Status = defaultStatus(n.Status)
+		n.StatusReason = trim(n.StatusReason)
+	}
+}
+
+func collapse(s string) string {
+	return strings.Join(strings.Fields(s), " ")
+}
+
+func (in PersonInput) validate() error {
+	var v validator
+	long := func(field, val string, max int) { v.check(utf8.RuneCountInString(val) <= max, field, "is too long") }
+	long("givenNames", in.GivenNames, 200)
+	long("surname", in.Surname, 200)
+	long("namePrefix", in.NamePrefix, 50)
+	long("nameSuffix", in.NameSuffix, 50)
+	long("nickname", in.Nickname, 100)
+	long("notes", in.Notes, 100_000)
+	v.check(oneOf(in.Sex, "M", "F", "U", "X"), "sex", "must be M, F, U or X")
+	v.check(len(in.AlternateNames) <= 50, "alternateNames", "too many names")
+	for _, n := range in.AlternateNames {
+		v.check(oneOf(n.Type, nameTypes...), "alternateNames", "unknown name type "+n.Type)
+		v.check(n.GivenNames != "" || n.Surname != "" || n.Nickname != "", "alternateNames", "a name needs at least a given name, surname or nickname")
+		v.check(validStatus(n.Status), "alternateNames", "unknown status "+n.Status)
+		v.check(n.Status == StatusAccepted || n.StatusReason != "", "alternateNames", "say why the name is disputed or disproven")
+		long("alternateNames", n.GivenNames+n.Surname, 400)
+	}
+	return v.err()
+}
+
+// CreatePerson adds a person.
+func (s *Store) CreatePerson(ctx context.Context, a Actor, in PersonInput) (Person, error) {
+	in.normalize()
+	if err := in.validate(); err != nil {
+		return Person{}, err
+	}
+	var p Person
+	err := s.tx(ctx, func(tx *sql.Tx) error {
+		now := s.now()
+		res, err := tx.ExecContext(ctx, `
+			INSERT INTO persons (tree_id, given_names, surname, name_prefix, name_suffix, nickname, sex, is_living, notes,
+				created_at, updated_at, created_by, updated_by)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			a.TreeID, in.GivenNames, in.Surname, in.NamePrefix, in.NameSuffix, in.Nickname, in.Sex, in.IsLiving, in.Notes,
+			now, now, nullID(a.UserID), nullID(a.UserID))
+		if err != nil {
+			return err
+		}
+		id, _ := res.LastInsertId()
+		if err := writeAlternateNames(ctx, tx, id, in.AlternateNames); err != nil {
+			return err
+		}
+		if err := reindexPerson(ctx, tx, id); err != nil {
+			return err
+		}
+		if p, err = s.getPerson(ctx, tx, a, id); err != nil {
+			return err
+		}
+		return s.logChange(ctx, tx, a, "person", id, "create", nil, p)
+	})
+	return p, err
+}
+
+// UpdatePerson replaces a person's own fields and alternate names.
+func (s *Store) UpdatePerson(ctx context.Context, a Actor, id int64, in PersonInput) (Person, error) {
+	in.normalize()
+	if err := in.validate(); err != nil {
+		return Person{}, err
+	}
+	var p Person
+	err := s.tx(ctx, func(tx *sql.Tx) error {
+		before, err := s.getPerson(ctx, tx, a, id)
+		if err != nil {
+			return err
+		}
+		_, err = tx.ExecContext(ctx, `
+			UPDATE persons SET given_names = ?, surname = ?, name_prefix = ?, name_suffix = ?, nickname = ?, sex = ?,
+				is_living = ?, notes = ?, updated_at = ?, updated_by = ?
+			WHERE id = ? AND tree_id = ?`,
+			in.GivenNames, in.Surname, in.NamePrefix, in.NameSuffix, in.Nickname, in.Sex, in.IsLiving, in.Notes,
+			s.now(), nullID(a.UserID), id, a.TreeID)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `DELETE FROM person_names WHERE person_id = ?`, id); err != nil {
+			return err
+		}
+		if err := writeAlternateNames(ctx, tx, id, in.AlternateNames); err != nil {
+			return err
+		}
+		if err := reindexPerson(ctx, tx, id); err != nil {
+			return err
+		}
+		if p, err = s.getPerson(ctx, tx, a, id); err != nil {
+			return err
+		}
+		return s.logChange(ctx, tx, a, "person", id, "update", before, p)
+	})
+	return p, err
+}
+
+// DeletePerson removes a person with their events. Families they were a
+// partner in keep the other partner and the children; a family left with no
+// one in it is removed too.
+func (s *Store) DeletePerson(ctx context.Context, a Actor, id int64) error {
+	return s.tx(ctx, func(tx *sql.Tx) error {
+		before, err := s.getPerson(ctx, tx, a, id)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `DELETE FROM persons WHERE id = ? AND tree_id = ?`, id, a.TreeID); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `DELETE FROM persons_fts WHERE rowid = ?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `
+			DELETE FROM families
+			WHERE tree_id = ? AND partner1_id IS NULL AND partner2_id IS NULL
+				AND NOT EXISTS (SELECT 1 FROM family_children c WHERE c.family_id = families.id)
+				AND NOT EXISTS (SELECT 1 FROM events e WHERE e.family_id = families.id)`, a.TreeID); err != nil {
+			return err
+		}
+		return s.logChange(ctx, tx, a, "person", id, "delete", before, nil)
+	})
+}
+
+func writeAlternateNames(ctx context.Context, tx *sql.Tx, personID int64, names []AlternateNameInput) error {
+	for i, n := range names {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO person_names (person_id, type, given_names, surname, name_prefix, name_suffix, nickname, status, status_reason, sort_order)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			personID, n.Type, n.GivenNames, n.Surname, n.NamePrefix, n.NameSuffix, n.Nickname, n.Status, n.StatusReason, i); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// reindexPerson rewrites the search entry of a person from all their names.
+func reindexPerson(ctx context.Context, tx *sql.Tx, id int64) error {
+	if _, err := tx.ExecContext(ctx, `DELETE FROM persons_fts WHERE rowid = ?`, id); err != nil {
+		return err
+	}
+	_, err := tx.ExecContext(ctx, `
+		INSERT INTO persons_fts (rowid, names)
+		SELECT p.id, p.given_names || ' ' || p.surname || ' ' || p.nickname || ' ' ||
+			coalesce((SELECT group_concat(n.given_names || ' ' || n.surname || ' ' || n.nickname, ' ')
+				FROM person_names n WHERE n.person_id = p.id), '')
+		FROM persons p WHERE p.id = ?`, id)
+	return err
+}
+
+// GetPerson returns a person's own record.
+func (s *Store) GetPerson(ctx context.Context, a Actor, id int64) (Person, error) {
+	return s.getPerson(ctx, s.DB, a, id)
+}
+
+func (s *Store) getPerson(ctx context.Context, q queryer, a Actor, id int64) (Person, error) {
+	var p Person
+	var living sql.NullInt64
+	err := q.QueryRowContext(ctx, `
+		SELECT id, given_names, surname, name_prefix, name_suffix, nickname, sex, is_living, notes, created_at, updated_at
+		FROM persons WHERE id = ? AND tree_id = ?`, id, a.TreeID).Scan(
+		&p.ID, &p.GivenNames, &p.Surname, &p.NamePrefix, &p.NameSuffix, &p.Nickname, &p.Sex, &living, &p.Notes,
+		&p.CreatedAt, &p.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Person{}, ErrNotFound
+	}
+	if err != nil {
+		return Person{}, err
+	}
+	if living.Valid {
+		b := living.Int64 == 1
+		p.IsLiving = &b
+	}
+
+	rows, err := q.QueryContext(ctx, `
+		SELECT id, type, given_names, surname, name_prefix, name_suffix, nickname, status, status_reason, sort_order
+		FROM person_names WHERE person_id = ? ORDER BY sort_order, id`, id)
+	if err != nil {
+		return Person{}, err
+	}
+	defer rows.Close()
+	p.AlternateNames = []AlternateName{}
+	for rows.Next() {
+		var n AlternateName
+		if err := rows.Scan(&n.ID, &n.Type, &n.GivenNames, &n.Surname, &n.NamePrefix, &n.NameSuffix, &n.Nickname,
+			&n.Status, &n.StatusReason, &n.SortOrder); err != nil {
+			return Person{}, err
+		}
+		p.AlternateNames = append(p.AlternateNames, n)
+	}
+	if err := rows.Err(); err != nil {
+		return Person{}, err
+	}
+	rows.Close()
+
+	refs, err := s.personRefs(ctx, q, a, []int64{id})
+	if err != nil {
+		return Person{}, err
+	}
+	p.Living = refs[id].Living
+	return p, nil
+}
+
+// GetPersonDetail returns a person with events and families.
+func (s *Store) GetPersonDetail(ctx context.Context, a Actor, id int64) (PersonDetail, error) {
+	p, err := s.getPerson(ctx, s.DB, a, id)
+	if err != nil {
+		return PersonDetail{}, err
+	}
+	d := PersonDetail{Person: p}
+
+	if d.Events, err = s.loadEvents(ctx, s.DB, a, `e.person_id = ?`, id); err != nil {
+		return PersonDetail{}, err
+	}
+	shared, err := s.loadEvents(ctx, s.DB, a, `e.id IN (SELECT event_id FROM event_participants WHERE person_id = ?)`, id)
+	if err != nil {
+		return PersonDetail{}, err
+	}
+	for _, e := range shared {
+		for _, part := range e.Participants {
+			if part.Person.ID == id {
+				e.Role = part.Role
+				break
+			}
+		}
+		d.Events = append(d.Events, e)
+	}
+
+	if d.ParentFamilies, err = s.loadFamilies(ctx, s.DB, a,
+		`f.id IN (SELECT family_id FROM family_children WHERE child_id = ?)`, id); err != nil {
+		return PersonDetail{}, err
+	}
+	if d.PartnerFamilies, err = s.loadFamilies(ctx, s.DB, a, `(f.partner1_id = ? OR f.partner2_id = ?)`, id, id); err != nil {
+		return PersonDetail{}, err
+	}
+	return d, nil
+}
+
+// ListPersons lists the tree's people alphabetically, or by relevance when
+// searching. The search matches the start of any name word, ignores case
+// and diacritics ("muller" finds "Müller") and covers alternate names.
+func (s *Store) ListPersons(ctx context.Context, a Actor, query string, limit, offset int) (PersonList, error) {
+	if limit <= 0 || limit > 500 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	list := PersonList{Items: []PersonRef{}}
+
+	match := ftsQuery(query)
+	var ids []int64
+	var err error
+	if match == "" {
+		if err = s.DB.QueryRowContext(ctx, `SELECT count(*) FROM persons WHERE tree_id = ?`, a.TreeID).Scan(&list.Total); err != nil {
+			return list, err
+		}
+		ids, err = queryIDs(ctx, s.DB, `
+			SELECT id FROM persons WHERE tree_id = ?
+			ORDER BY surname = '', surname COLLATE NOCASE, given_names COLLATE NOCASE, id
+			LIMIT ? OFFSET ?`, a.TreeID, limit, offset)
+	} else {
+		if err = s.DB.QueryRowContext(ctx, `
+			SELECT count(*) FROM persons_fts f JOIN persons p ON p.id = f.rowid
+			WHERE persons_fts MATCH ? AND p.tree_id = ?`, match, a.TreeID).Scan(&list.Total); err != nil {
+			return list, err
+		}
+		ids, err = queryIDs(ctx, s.DB, `
+			SELECT p.id FROM persons_fts f JOIN persons p ON p.id = f.rowid
+			WHERE persons_fts MATCH ? AND p.tree_id = ?
+			ORDER BY f.rank, p.surname COLLATE NOCASE, p.given_names COLLATE NOCASE
+			LIMIT ? OFFSET ?`, match, a.TreeID, limit, offset)
+	}
+	if err != nil {
+		return list, err
+	}
+	refs, err := s.personRefs(ctx, s.DB, a, ids)
+	if err != nil {
+		return list, err
+	}
+	for _, id := range ids {
+		list.Items = append(list.Items, refs[id])
+	}
+	return list, nil
+}
+
+// ftsQuery turns user input into an FTS5 prefix query; every word must match.
+func ftsQuery(input string) string {
+	words := strings.FieldsFunc(input, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '\''
+	})
+	parts := make([]string, 0, len(words))
+	for _, w := range words {
+		w = strings.ReplaceAll(w, "'", "")
+		if w == "" {
+			continue
+		}
+		parts = append(parts, `"`+w+`"*`)
+		if len(parts) == 8 {
+			break
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+func queryIDs(ctx context.Context, q queryer, query string, args ...any) ([]int64, error) {
+	rows, err := q.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+// personRefs loads short person records with their birth and death dates.
+// Disproven events are ignored.
+func (s *Store) personRefs(ctx context.Context, q queryer, a Actor, ids []int64) (map[int64]PersonRef, error) {
+	refs := map[int64]PersonRef{}
+	if len(ids) == 0 {
+		return refs, nil
+	}
+	args := append([]any{a.TreeID}, int64Args(ids)...)
+	rows, err := q.QueryContext(ctx, `
+		SELECT p.id, p.given_names, p.surname, p.sex, p.is_living,
+			(SELECT coalesce(nullif(e.date, ''), e.date_raw) FROM events e
+				WHERE e.person_id = p.id AND e.type IN ('BIRT', 'CHR', 'BAPM') AND e.status <> 'disproven'
+				ORDER BY e.type <> 'BIRT', e.date_sort IS NULL, e.date_sort LIMIT 1),
+			(SELECT e.date_sort FROM events e
+				WHERE e.person_id = p.id AND e.type IN ('BIRT', 'CHR', 'BAPM') AND e.status <> 'disproven' AND e.date_sort IS NOT NULL
+				ORDER BY e.type <> 'BIRT', e.date_sort LIMIT 1),
+			(SELECT coalesce(nullif(e.date, ''), e.date_raw) FROM events e
+				WHERE e.person_id = p.id AND e.type IN ('DEAT', 'BURI', 'CREM') AND e.status <> 'disproven'
+				ORDER BY e.type <> 'DEAT', e.date_sort IS NULL, e.date_sort LIMIT 1),
+			EXISTS (SELECT 1 FROM events e
+				WHERE e.person_id = p.id AND e.type IN ('DEAT', 'BURI', 'CREM') AND e.status <> 'disproven')
+		FROM persons p
+		WHERE p.tree_id = ? AND p.id IN (`+placeholders(len(ids))+`)`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	thisYear := s.Now().Year()
+	for rows.Next() {
+		var r PersonRef
+		var stated, birthSort sql.NullInt64
+		var birth, death sql.NullString
+		var dead bool
+		if err := rows.Scan(&r.ID, &r.GivenNames, &r.Surname, &r.Sex, &stated, &birth, &birthSort, &death, &dead); err != nil {
+			return nil, err
+		}
+		r.BirthDate, r.DeathDate = birth.String, death.String
+		switch {
+		case stated.Valid:
+			r.Living = stated.Int64 == 1
+		case dead:
+			r.Living = false
+		case birthSort.Valid:
+			r.Living = int(birthSort.Int64/10000) > thisYear-livingCutoffYears
+		default:
+			// Nothing known: treat as living, the safe choice for privacy.
+			r.Living = true
+		}
+		refs[r.ID] = r
+	}
+	return refs, rows.Err()
+}

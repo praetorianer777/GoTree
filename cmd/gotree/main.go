@@ -15,6 +15,7 @@ import (
 	"github.com/praetorianer777/gotree/internal/api"
 	"github.com/praetorianer777/gotree/internal/config"
 	"github.com/praetorianer777/gotree/internal/db"
+	"github.com/praetorianer777/gotree/internal/store"
 	"github.com/praetorianer777/gotree/web"
 )
 
@@ -47,10 +48,18 @@ func run(log *slog.Logger) error {
 	}
 	defer conn.Close()
 
+	st := store.New(conn)
+	if err := bootstrapAdmin(ctx, st, cfg, log); err != nil {
+		return err
+	}
+	if err := st.PruneSessions(ctx); err != nil {
+		return err
+	}
+
 	srv := &http.Server{
 		Addr: cfg.ListenAddr,
 		Handler: (&api.Server{
-			DB:       conn,
+			Store:    st,
 			Version:  version,
 			Frontend: web.Dist(),
 			Log:      log,
@@ -77,5 +86,22 @@ func run(log *slog.Logger) error {
 			return fmt.Errorf("shutdown: %w", err)
 		}
 	}
+	return nil
+}
+
+// bootstrapAdmin creates the first account from the environment, for
+// unattended installs. Without GOTREE_ADMIN_PASSWORD the web UI asks for it.
+func bootstrapAdmin(ctx context.Context, st *store.Store, cfg config.Config, log *slog.Logger) error {
+	if cfg.AdminPassword == "" {
+		return nil
+	}
+	need, err := st.NeedsSetup(ctx)
+	if err != nil || !need {
+		return err
+	}
+	if _, err := st.Setup(ctx, store.SetupInput{Username: cfg.AdminUser, Password: cfg.AdminPassword}); err != nil {
+		return fmt.Errorf("create admin from GOTREE_ADMIN_PASSWORD: %w", err)
+	}
+	log.Info("created admin account from the environment", "user", cfg.AdminUser)
 	return nil
 }

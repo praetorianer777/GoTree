@@ -13,6 +13,7 @@ import (
 	"testing/fstest"
 
 	"github.com/praetorianer777/gotree/internal/db"
+	"github.com/praetorianer777/gotree/internal/store"
 )
 
 func newServer(t *testing.T, frontend fstest.MapFS) *httptest.Server {
@@ -23,15 +24,23 @@ func newServer(t *testing.T, frontend fstest.MapFS) *httptest.Server {
 	}
 	t.Cleanup(func() { conn.Close() })
 	s := &Server{
-		DB:       conn,
+		Store:    store.New(conn),
 		Version:  "1.2.3",
 		Frontend: frontend,
 		Log:      slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
 	ts := httptest.NewServer(s.Handler())
-	t.Cleanup(ts.Close)
+	testServers[ts] = s
+	t.Cleanup(func() {
+		ts.Close()
+		delete(testServers, ts)
+	})
 	return ts
 }
+
+// testServers gives tests access to the Server behind a test server, e.g.
+// to change data directly in the database.
+var testServers = map[*httptest.Server]*Server{}
 
 func get(t *testing.T, url string) (*http.Response, string) {
 	t.Helper()
