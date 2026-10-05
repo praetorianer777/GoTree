@@ -35,7 +35,9 @@ export function SearchSelect<T>(props: Props<T>) {
   const results = useQuery({
     queryKey: [queryKey, 'search', debounced],
     queryFn: ({ signal }) => search(debounced, signal),
-    enabled: value === null,
+    // Results appear once something is typed; a full list up front only
+    // pushes the rest of the form out of view.
+    enabled: value === null && debounced !== '',
   })
 
   if (value !== null) {
@@ -54,7 +56,7 @@ export function SearchSelect<T>(props: Props<T>) {
     )
   }
 
-  const items = results.data ?? []
+  const items = debounced === '' ? [] : (results.data ?? [])
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-800 dark:text-slate-200">
@@ -81,7 +83,7 @@ export function SearchSelect<T>(props: Props<T>) {
         </p>
       )}
       <p id={`${id}-count`} role="status" className="sr-only">
-        {results.isFetching ? t('common.searching') : t('common.resultCount', { count: items.length })}
+        {debounced === '' ? '' : results.isFetching ? t('common.searching') : t('common.resultCount', { count: items.length })}
       </p>
       {items.length > 0 && (
         <ul className="mt-2 max-h-60 divide-y divide-slate-200 overflow-y-auto rounded-lg border border-slate-300 dark:divide-slate-800 dark:border-slate-700">

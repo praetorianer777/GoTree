@@ -60,6 +60,7 @@ function RelativeForm({ anchor, relation, onClose, onSaved }: Omit<Props, 'open'
       }),
     onSuccess: (r) => {
       void queryClient.invalidateQueries({ queryKey: ['person'] })
+      void queryClient.invalidateQueries({ queryKey: ['tree'] })
       void queryClient.invalidateQueries({ queryKey: ['persons'] })
       onSaved(r)
     },

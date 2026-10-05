@@ -9,6 +9,12 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Family tree charts: ancestors (pedigree), descendants, both (hourglass) and the family group,
+  with pan and zoom, a generations slider and a "blood relatives only" filter; select a person to
+  center the tree on them, open their page or add relatives (#11)
+- Arrow keys move between related people in the chart, and every chart is also available as a
+  list for screen readers and small screens (#11)
+
 - People list with search, and a person page with life events in date order, parents and
   siblings, partners and children (#9)
 - Add parents, partners, children and siblings in any order, as new or existing people; adding

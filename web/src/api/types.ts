@@ -206,3 +206,24 @@ export interface ParsedDate {
   qualifier: string
   error?: string
 }
+
+export interface TreeChild {
+  personId: number
+  relationPartner1: ChildRelation
+  relationPartner2: ChildRelation
+}
+
+export interface TreeFamily {
+  id: number
+  partner1Id: number | null
+  partner2Id: number | null
+  unionType: UnionType
+  children: TreeChild[]
+}
+
+export interface TreeGraph {
+  rootId: number
+  persons: Record<string, PersonRef>
+  families: TreeFamily[]
+  truncated: boolean
+}

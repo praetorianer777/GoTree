@@ -19,6 +19,7 @@ func (s *Server) resourceRoutes(r chi.Router) {
 		r.Post("/{id}/relatives", s.addRelative)
 	})
 	r.Get("/dates/parse", parseDate)
+	r.Get("/tree/{id}", s.tree)
 	r.Route("/families", func(r chi.Router) {
 		r.Post("/", s.createFamily)
 		r.Get("/{id}", s.getFamily)
@@ -274,4 +275,18 @@ func parseDate(w http.ResponseWriter, r *http.Request) {
 	default:
 		writeJSON(w, http.StatusOK, parsedDate{Valid: true, Normalized: d.String(), Qualifier: string(d.Qualifier)})
 	}
+}
+
+func (s *Server) tree(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	q := r.URL.Query()
+	g, err := s.Store.Tree(r.Context(), actorFrom(r), id, store.TreeOptions{
+		Up:       queryInt(r, "up", 0),
+		Down:     queryInt(r, "down", 0),
+		Siblings: q.Get("siblings") == "1" || q.Get("siblings") == "true",
+	})
+	s.respond(w, http.StatusOK, g, err)
 }

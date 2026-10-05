@@ -65,6 +65,7 @@ function EventForm({ owner, event, defaultType, onClose }: Omit<Props, 'open'>) 
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ['person'] })
+      void queryClient.invalidateQueries({ queryKey: ['tree'] })
     void queryClient.invalidateQueries({ queryKey: ['persons'] })
   }
   const save = useMutation({

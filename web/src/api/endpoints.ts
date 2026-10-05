@@ -13,6 +13,7 @@ import type {
   PlaceInput,
   RelativeInput,
   RelativeResult,
+  TreeGraph,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -39,3 +40,6 @@ export const listPlaces = (q: string, signal?: AbortSignal) => getJSON<Place[]>(
 export const createPlace = (input: PlaceInput) => postJSON<Place>('/places', input)
 
 export const parseDate = (q: string, signal?: AbortSignal) => getJSON<ParsedDate>(`/dates/parse?${qs({ q })}`, signal)
+
+export const getTree = (id: number, opts: { up: number; down: number; siblings: boolean }, signal?: AbortSignal) =>
+  getJSON<TreeGraph>(`/tree/${id}?${qs({ up: opts.up, down: opts.down, siblings: opts.siblings ? 1 : 0 })}`, signal)
