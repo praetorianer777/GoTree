@@ -5,6 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "🐚 Shell tests"
+./tests/test-release.sh
 ./.claude/hooks/tests/branch-guard-test.sh
 
 # The backend and frontend arrive in later milestones; until then each stage
