@@ -42,6 +42,13 @@ export const TreeIcon = () => (
   </Icon>
 )
 
+export const SourceIcon = () => (
+  <Icon>
+    <path d="M6 3h9l4 4v14H6z" />
+    <path d="M15 3v4h4M9 12h7M9 16h7" />
+  </Icon>
+)
+
 export const TransferIcon = () => (
   <Icon>
     <path d="M7 4v13M3.5 13.5 7 17l3.5-3.5" />

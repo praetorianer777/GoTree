@@ -9,6 +9,9 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Sources and archives: record where facts come from, cite a source with page and reliability
+  on events, people and relationships, and see on each source what it supports (#13)
+
 - Family tree charts: ancestors (pedigree), descendants, both (hourglass) and the family group,
   with pan and zoom, a generations slider and a "blood relatives only" filter; select a person to
   center the tree on them, open their page or add relatives (#11)

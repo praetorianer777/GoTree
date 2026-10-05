@@ -156,3 +156,35 @@ func TestTreeEndpoint(t *testing.T) {
 	}
 	c.call("GET", "/api/tree/999", nil, http.StatusNotFound, nil)
 }
+
+func TestSourcesAPI(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	c := loggedIn(t, ts)
+
+	var repo store.Repository
+	c.call("POST", "/api/repositories", map[string]any{"name": "Stadtarchiv"}, http.StatusCreated, &repo)
+	var src store.Source
+	c.call("POST", "/api/sources", map[string]any{"title": "Kirchenbuch", "repositoryId": repo.ID}, http.StatusCreated, &src)
+	var p store.Person
+	c.call("POST", "/api/persons", map[string]any{
+		"givenNames": "Anna", "addCitations": []map[string]any{{"sourceId": src.ID, "page": "12"}},
+	}, http.StatusCreated, &p)
+	if len(p.Citations) != 1 {
+		t.Fatalf("person citations: %+v", p.Citations)
+	}
+
+	var list []store.Source
+	c.call("GET", "/api/sources?q=kirchen", nil, http.StatusOK, &list)
+	if len(list) != 1 || list[0].CitationCount != 1 {
+		t.Errorf("sources: %+v", list)
+	}
+	var detail store.SourceDetail
+	c.call("GET", fmt.Sprintf("/api/sources/%d", src.ID), nil, http.StatusOK, &detail)
+	if len(detail.Citations) != 1 || detail.Citations[0].Links[0].EntityID != p.ID {
+		t.Fatalf("detail: %+v", detail)
+	}
+	cid := detail.Citations[0].ID
+	c.call("DELETE", fmt.Sprintf("/api/citations/%d/links/person/%d", cid, p.ID), nil, http.StatusNoContent, nil)
+	c.call("GET", fmt.Sprintf("/api/citations/%d", cid), nil, http.StatusNotFound, nil)
+	c.call("DELETE", fmt.Sprintf("/api/sources/%d", src.ID), nil, http.StatusNoContent, nil)
+}

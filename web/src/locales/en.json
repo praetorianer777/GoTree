@@ -11,7 +11,8 @@
     "dashboard": "Home",
     "people": "People",
     "tree": "Tree",
-    "importExport": "Import & export"
+    "importExport": "Import & export",
+    "sources": "Sources"
   },
   "dashboard": {
     "title": "Welcome to GoTree",
@@ -160,7 +161,8 @@
     "pick": "Person",
     "whichPartnerFamily": "With which partner?",
     "whichParentFamily": "In which parent family?",
-    "childRelation": "Relationship to the parent"
+    "childRelation": "Relationship to the parent",
+    "sourceLegend": "Source for this relationship (optional)"
   },
   "childRelation": {
     "birth": "birth",
@@ -307,5 +309,61 @@
     "centerHere": "Center tree here",
     "openPage": "Open page",
     "addRelative": "Add a relative"
+  },
+  "citation": {
+    "sources": "Sources",
+    "none": "No sources cited yet.",
+    "add": "Cite this source",
+    "unsaved": "new",
+    "source": "Source",
+    "sourceHint": "Search your sources, or type the title of a new one.",
+    "createSource": "Create source “{{title}}”",
+    "page": "Where in the source",
+    "pageHint": "e.g. page 12, entry 34, or an image number",
+    "quality": "How reliable?",
+    "qualityUnknown": "Not assessed",
+    "qualities": {
+      "3": "primary, direct evidence",
+      "2": "secondary evidence",
+      "1": "questionable",
+      "0": "unreliable"
+    },
+    "sourcesFor": "Sources for {{what}}",
+    "sourcesForPerson": "Sources about this person",
+    "sourcesForFamily": "Sources for this relationship",
+    "eventOf": "{{event}} of {{name}}",
+    "fieldNote": "only the {{field}}",
+    "target": {
+      "person": "{{name}}",
+      "family": "Relationship of {{name}}",
+      "name": "A name of {{name}}"
+    }
+  },
+  "source": {
+    "new": "New source",
+    "edit": "Edit source",
+    "delete": "Delete source",
+    "deleteConfirm_one": "Delete “{{title}}” and its {{count}} citation?",
+    "deleteConfirm_other": "Delete “{{title}}” and its {{count}} citations?",
+    "intro": "Church books, civil records, census returns, letters, websites: where your facts come from.",
+    "search": "Search sources",
+    "count_one": "{{count}} source",
+    "count_other": "{{count}} sources",
+    "citationCount_one": "{{count}} citation",
+    "citationCount_other": "{{count}} citations",
+    "title": "Title",
+    "titleHint": "e.g. “Church book St. Thomas Leipzig, baptisms 1880–1900”",
+    "author": "Author or creator",
+    "publication": "Publication",
+    "publicationHint": "Publisher, year or website",
+    "repository": "Kept at",
+    "repositoryHint": "Archive, library or website. Type to search or create.",
+    "createRepository": "Create “{{name}}”",
+    "callNumber": "Call number",
+    "callNumberHint": "Signature or film number at the archive",
+    "citations": "Citations",
+    "noCitations": "Nothing cites this source yet.",
+    "noPage": "No page given",
+    "supports": "Supports:"
   }
 }

@@ -30,6 +30,7 @@ const event = (id: number, type: string, raw: string, extra: Partial<LifeEvent> 
   statusReason: '',
   sortOrder: 0,
   participants: [],
+  citations: [],
   createdAt: '',
   updatedAt: '',
   ...extra,
@@ -43,6 +44,7 @@ const family = (id: number, extra: Partial<Family>): Family => ({
   notes: '',
   children: [],
   events: [],
+  citations: [],
   createdAt: '',
   updatedAt: '',
   ...extra,
@@ -60,6 +62,7 @@ const paul: PersonDetail = {
   living: false,
   notes: 'Worked as a weaver.',
   alternateNames: [],
+  citations: [],
   createdAt: '',
   updatedAt: '',
   events: [

@@ -6,12 +6,13 @@ import { getAuthState, logout } from '../api/client'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { Button } from './Button'
 import { ShortcutsHelp } from './ShortcutsHelp'
-import { HomeIcon, PeopleIcon, TransferIcon, TreeIcon } from './icons'
+import { HomeIcon, PeopleIcon, SourceIcon, TransferIcon, TreeIcon } from './icons'
 
 const navItems = [
   { to: '/', key: 'nav.dashboard', Icon: HomeIcon, end: true },
   { to: '/people', key: 'nav.people', Icon: PeopleIcon, end: false },
   { to: '/tree', key: 'nav.tree', Icon: TreeIcon, end: false },
+  { to: '/sources', key: 'nav.sources', Icon: SourceIcon, end: false },
   { to: '/import-export', key: 'nav.importExport', Icon: TransferIcon, end: false },
 ] as const
 
@@ -94,7 +95,7 @@ export function Layout() {
           aria-label={t('app.mainNavigation')}
           className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950 md:sticky md:top-14 md:h-[calc(100dvh-3.5rem)] md:w-60 md:shrink-0 md:border-t-0 md:border-r md:pb-0"
         >
-          <ul className="grid grid-cols-4 md:flex md:flex-col md:gap-1 md:p-3">
+          <ul className="grid grid-cols-5 md:flex md:flex-col md:gap-1 md:p-3">
             {navItems.map(({ to, key, Icon, end }) => (
               <li key={to}>
                 <NavLink

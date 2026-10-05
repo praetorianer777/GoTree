@@ -11,16 +11,17 @@ import (
 
 // AlternateName is a further name of a person: birth name, married name, …
 type AlternateName struct {
-	ID           int64  `json:"id"`
-	Type         string `json:"type"`
-	GivenNames   string `json:"givenNames"`
-	Surname      string `json:"surname"`
-	NamePrefix   string `json:"namePrefix"`
-	NameSuffix   string `json:"nameSuffix"`
-	Nickname     string `json:"nickname"`
-	Status       string `json:"status"`
-	StatusReason string `json:"statusReason"`
-	SortOrder    int    `json:"sortOrder"`
+	ID           int64         `json:"id"`
+	Type         string        `json:"type"`
+	GivenNames   string        `json:"givenNames"`
+	Surname      string        `json:"surname"`
+	NamePrefix   string        `json:"namePrefix"`
+	NameSuffix   string        `json:"nameSuffix"`
+	Nickname     string        `json:"nickname"`
+	Status       string        `json:"status"`
+	StatusReason string        `json:"statusReason"`
+	SortOrder    int           `json:"sortOrder"`
+	Citations    []CitationRef `json:"citations"`
 }
 
 // Person is a person's own record.
@@ -38,8 +39,10 @@ type Person struct {
 	Living         bool            `json:"living"`
 	Notes          string          `json:"notes"`
 	AlternateNames []AlternateName `json:"alternateNames"`
-	CreatedAt      string          `json:"createdAt"`
-	UpdatedAt      string          `json:"updatedAt"`
+	// Citations support the person as a whole.
+	Citations []CitationRef `json:"citations"`
+	CreatedAt string        `json:"createdAt"`
+	UpdatedAt string        `json:"updatedAt"`
 }
 
 // PersonRef is the short form of a person used in lists and relations.
@@ -53,8 +56,11 @@ type PersonRef struct {
 	Living     bool   `json:"living"`
 }
 
-// AlternateNameInput is the editable part of an AlternateName.
+// AlternateNameInput is the editable part of an AlternateName. ID keeps an
+// existing name (and the citations attached to it); without it a new name
+// is created.
 type AlternateNameInput struct {
+	ID           *int64 `json:"id,omitempty"`
 	Type         string `json:"type"`
 	GivenNames   string `json:"givenNames"`
 	Surname      string `json:"surname"`
@@ -77,6 +83,10 @@ type PersonInput struct {
 	IsLiving       *bool                `json:"isLiving"`
 	Notes          string               `json:"notes"`
 	AlternateNames []AlternateNameInput `json:"alternateNames"`
+	// AddCitations cites sources for the person as a whole.
+	AddCitations []NewCitation `json:"addCitations,omitempty"`
+	// RemoveCitations detaches citations from the person.
+	RemoveCitations []int64 `json:"removeCitations,omitempty"`
 }
 
 // PersonDetail is everything the person page shows.
@@ -178,6 +188,9 @@ func (s *Store) createPerson(ctx context.Context, tx *sql.Tx, a Actor, in Person
 		if err := writeAlternateNames(ctx, tx, id, in.AlternateNames); err != nil {
 			return err
 		}
+		if err := s.addCitations(ctx, tx, a, "person", id, in.AddCitations); err != nil {
+			return err
+		}
 		if err := reindexPerson(ctx, tx, id); err != nil {
 			return err
 		}
@@ -210,10 +223,13 @@ func (s *Store) UpdatePerson(ctx context.Context, a Actor, id int64, in PersonIn
 		if err != nil {
 			return err
 		}
-		if _, err := tx.ExecContext(ctx, `DELETE FROM person_names WHERE person_id = ?`, id); err != nil {
+		if err := writeAlternateNames(ctx, tx, id, in.AlternateNames); err != nil {
 			return err
 		}
-		if err := writeAlternateNames(ctx, tx, id, in.AlternateNames); err != nil {
+		if err := s.addCitations(ctx, tx, a, "person", id, in.AddCitations); err != nil {
+			return err
+		}
+		if err := s.removeCitations(ctx, tx, a, "person", id, in.RemoveCitations); err != nil {
 			return err
 		}
 		if err := reindexPerson(ctx, tx, id); err != nil {
@@ -253,13 +269,44 @@ func (s *Store) DeletePerson(ctx context.Context, a Actor, id int64) error {
 	})
 }
 
+// writeAlternateNames makes the person's names match names: names with an
+// ID of this person are updated in place, so citations on them survive;
+// the rest are inserted, and names no longer listed are deleted.
 func writeAlternateNames(ctx context.Context, tx *sql.Tx, personID int64, names []AlternateNameInput) error {
+	existing, err := queryIDs(ctx, tx, `SELECT id FROM person_names WHERE person_id = ?`, personID)
+	if err != nil {
+		return err
+	}
+	keep := map[int64]bool{}
+	for _, id := range existing {
+		keep[id] = false
+	}
 	for i, n := range names {
+		if n.ID != nil {
+			if _, ok := keep[*n.ID]; ok {
+				keep[*n.ID] = true
+				if _, err := tx.ExecContext(ctx, `
+					UPDATE person_names SET type = ?, given_names = ?, surname = ?, name_prefix = ?, name_suffix = ?,
+						nickname = ?, status = ?, status_reason = ?, sort_order = ?
+					WHERE id = ?`,
+					n.Type, n.GivenNames, n.Surname, n.NamePrefix, n.NameSuffix, n.Nickname, n.Status, n.StatusReason, i, *n.ID); err != nil {
+					return err
+				}
+				continue
+			}
+		}
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO person_names (person_id, type, given_names, surname, name_prefix, name_suffix, nickname, status, status_reason, sort_order)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			personID, n.Type, n.GivenNames, n.Surname, n.NamePrefix, n.NameSuffix, n.Nickname, n.Status, n.StatusReason, i); err != nil {
 			return err
+		}
+	}
+	for id, kept := range keep {
+		if !kept {
+			if _, err := tx.ExecContext(ctx, `DELETE FROM person_names WHERE id = ?`, id); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -329,6 +376,23 @@ func (s *Store) getPerson(ctx context.Context, q queryer, a Actor, id int64) (Pe
 		return Person{}, err
 	}
 	p.Living = refs[id].Living
+
+	cits, err := citationRefs(ctx, q, a, "person", []int64{id})
+	if err != nil {
+		return Person{}, err
+	}
+	p.Citations = orEmpty(cits[id])
+	nameIDs := make([]int64, len(p.AlternateNames))
+	for i, n := range p.AlternateNames {
+		nameIDs[i] = n.ID
+	}
+	nameCits, err := citationRefs(ctx, q, a, "name", nameIDs)
+	if err != nil {
+		return Person{}, err
+	}
+	for i := range p.AlternateNames {
+		p.AlternateNames[i].Citations = orEmpty(nameCits[p.AlternateNames[i].ID])
+	}
 	return p, nil
 }
 
@@ -503,4 +567,11 @@ func (s *Store) personRefs(ctx context.Context, q queryer, a Actor, ids []int64)
 		refs[r.ID] = r
 	}
 	return refs, rows.Err()
+}
+
+func orEmpty(refs []CitationRef) []CitationRef {
+	if refs == nil {
+		return []CitationRef{}
+	}
+	return refs
 }

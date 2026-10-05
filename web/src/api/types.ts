@@ -26,6 +26,7 @@ export interface AlternateName {
   status: FactStatus
   statusReason: string
   sortOrder: number
+  citations: CitationRef[]
 }
 
 export interface Person {
@@ -40,6 +41,7 @@ export interface Person {
   living: boolean
   notes: string
   alternateNames: AlternateName[]
+  citations: CitationRef[]
   createdAt: string
   updatedAt: string
 }
@@ -78,6 +80,7 @@ export interface LifeEvent {
   statusReason: string
   sortOrder: number
   participants: Participant[]
+  citations: CitationRef[]
   role?: string
   createdAt: string
   updatedAt: string
@@ -98,6 +101,7 @@ export interface Family {
   notes: string
   children: ChildLink[]
   events: LifeEvent[]
+  citations: CitationRef[]
   createdAt: string
   updatedAt: string
 }
@@ -125,6 +129,7 @@ export interface Place {
 }
 
 export interface AlternateNameInput {
+  id?: number
   type: NameType
   givenNames: string
   surname: string
@@ -145,6 +150,8 @@ export interface PersonInput {
   isLiving: boolean | null
   notes: string
   alternateNames: AlternateNameInput[]
+  addCitations?: NewCitation[]
+  removeCitations?: number[]
 }
 
 export interface ParticipantInput {
@@ -167,6 +174,8 @@ export interface EventInput {
   statusReason: string
   sortOrder: number
   participants: ParticipantInput[]
+  addCitations?: NewCitation[]
+  removeCitations?: number[]
 }
 
 export interface FamilyInput {
@@ -183,6 +192,7 @@ export interface RelativeInput {
   familyId?: number
   unionType?: UnionType
   childRelation?: ChildRelation
+  citation?: NewCitation
 }
 
 export interface RelativeResult {
@@ -226,4 +236,74 @@ export interface TreeGraph {
   persons: Record<string, PersonRef>
   families: TreeFamily[]
   truncated: boolean
+}
+
+export interface CitationRef {
+  citationId: number
+  sourceId: number
+  sourceTitle: string
+  page: string
+  quality: number | null
+  field: string
+  status: FactStatus
+}
+
+export interface NewCitation {
+  sourceId: number
+  page: string
+  quality: number | null
+  text: string
+}
+
+export interface Repository {
+  id: number
+  name: string
+  address: string
+  url: string
+  notes: string
+}
+
+export interface Source {
+  id: number
+  title: string
+  author: string
+  publication: string
+  callNumber: string
+  repository: Repository | null
+  notes: string
+  citationCount: number
+}
+
+export interface SourceInput {
+  title: string
+  author: string
+  publication: string
+  callNumber: string
+  repositoryId: number | null
+  notes: string
+}
+
+export interface CitationLink {
+  entityType: 'person' | 'event' | 'family' | 'name'
+  entityId: number
+  field: string
+  status: FactStatus
+  statusReason: string
+  /** "Anna Müller", or "BIRT|Anna Müller" / "EVEN:Custom|Anna Müller" for events. */
+  label: string
+  personId: number | null
+}
+
+export interface Citation {
+  id: number
+  sourceId: number
+  page: string
+  quality: number | null
+  text: string
+  notes: string
+  links: CitationLink[]
+}
+
+export interface SourceDetail extends Source {
+  citations: Citation[]
 }

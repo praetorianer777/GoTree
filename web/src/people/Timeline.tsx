@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import type { TimelineItem } from './timelineItems'
 import { Button } from '../components/Button'
 import { partnerLabel } from './familyLabel'
+import { CitationText } from '../sources/CitationEditor'
 
 interface Props {
   items: TimelineItem[]
@@ -49,6 +50,16 @@ export function Timeline({ items, personId, onEdit }: Props) {
               {e.role && <p className="text-sm text-slate-600 dark:text-slate-400">{t('event.asRole', { role: t(`role.${e.role}`, { defaultValue: e.role }) })}</p>}
               {e.status !== 'accepted' && e.statusReason && (
                 <p className="text-sm text-slate-600 dark:text-slate-400">{t('event.reason', { reason: e.statusReason })}</p>
+              )}
+              {e.citations.length > 0 && (
+                <ul className="text-sm" aria-label={t('citation.sourcesFor', { what: label })}>
+                  {e.citations.map((c) => (
+                    <li key={c.citationId}>
+                      <span aria-hidden="true">📄 </span>
+                      <CitationText citation={c} />
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
             <Button variant="ghost" onClick={() => onEdit({ event: e, family })}>

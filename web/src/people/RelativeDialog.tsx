@@ -2,11 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { addRelative } from '../api/endpoints'
-import type { ChildRelation, PersonDetail, PersonInput, PersonRef, Relation, RelativeResult, UnionType } from '../api/types'
+import type { ChildRelation, PersonDetail, PersonInput, PersonRef, Relation, RelativeResult, Source, UnionType } from '../api/types'
 import { Dialog } from '../components/Dialog'
 import { SelectField } from '../components/Field'
 import { Form } from '../components/Form'
 import { formErrors } from '../lib/errors'
+import { SourcePicker } from '../sources/SourcePicker'
+import { TextField } from '../components/TextField'
 import { emptyPerson, fullName } from '../lib/people'
 import { parentsLabel, partnerLabel } from './familyLabel'
 import { PersonFields } from './PersonFields'
@@ -48,6 +50,8 @@ function RelativeForm({ anchor, relation, onClose, onSaved }: Omit<Props, 'open'
   const [familyId, setFamilyId] = useState<number | null>(families[0]?.id ?? null)
   const [unionType, setUnionType] = useState<UnionType>('married')
   const [childRelation, setChildRelation] = useState<ChildRelation>('birth')
+  const [source, setSource] = useState<Source | null>(null)
+  const [page, setPage] = useState('')
 
   const save = useMutation({
     mutationFn: () =>
@@ -57,6 +61,7 @@ function RelativeForm({ anchor, relation, onClose, onSaved }: Omit<Props, 'open'
         ...(familyId !== null && families.length > 0 ? { familyId } : {}),
         ...(relation === 'partner' ? { unionType } : {}),
         ...(relation === 'child' || relation === 'parent' ? { childRelation } : {}),
+        ...(source ? { citation: { sourceId: source.id, page, quality: null, text: '' } } : {}),
       }),
     onSuccess: (r) => {
       void queryClient.invalidateQueries({ queryKey: ['person'] })
@@ -129,6 +134,11 @@ function RelativeForm({ anchor, relation, onClose, onSaved }: Omit<Props, 'open'
           ))}
         </SelectField>
       )}
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-semibold">{t('relative.sourceLegend')}</legend>
+        <SourcePicker value={source} onChange={setSource} error={errors.fields['citations.sourceId']} />
+        {source && <TextField label={t('citation.page')} hint={t('citation.pageHint')} value={page} onChange={(e) => setPage(e.target.value)} />}
+      </fieldset>
       {errors.fields.relation && <p className="text-sm font-medium text-red-700 dark:text-red-400">{errors.fields.relation}</p>}
       {errors.fields.childId && <p className="text-sm font-medium text-red-700 dark:text-red-400">{errors.fields.childId}</p>}
     </Form>

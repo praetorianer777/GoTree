@@ -11,6 +11,7 @@ import { Form } from '../components/Form'
 import { TextField } from '../components/TextField'
 import { formErrors } from '../lib/errors'
 import { familyEventTypes, participantRoles, personEventTypes } from '../lib/eventTypes'
+import { CitationEditor, type PendingCitation } from '../sources/CitationEditor'
 import { fullName } from '../lib/people'
 import { DateField } from './DateField'
 import { PersonPicker } from './PersonPicker'
@@ -62,6 +63,8 @@ function EventForm({ owner, event, defaultType, onClose }: Omit<Props, 'open'>) 
   )
   const [newParticipant, setNewParticipant] = useState<PersonRef | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [addCitations, setAddCitations] = useState<PendingCitation[]>([])
+  const [removeCitations, setRemoveCitations] = useState<number[]>([])
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ['person'] })
@@ -83,6 +86,8 @@ function EventForm({ owner, event, defaultType, onClose }: Omit<Props, 'open'>) 
         statusReason: status === 'accepted' ? '' : statusReason,
         sortOrder: event?.sortOrder ?? 0,
         participants: participants.map((p) => ({ personId: p.person.id, role: p.role, customRole: p.customRole, notes: '' })),
+        addCitations: addCitations.map(({ sourceId, page, quality, text }) => ({ sourceId, page, quality, text })),
+        removeCitations,
       }
       return event ? updateEvent(event.id, input) : createEvent(input)
     },
@@ -183,6 +188,15 @@ function EventForm({ owner, event, defaultType, onClose }: Omit<Props, 'open'>) 
             }}
           />
         </fieldset>
+
+        <CitationEditor
+          existing={event?.citations ?? []}
+          removed={removeCitations}
+          onRemovedChange={setRemoveCitations}
+          added={addCitations}
+          onAddedChange={setAddCitations}
+          error={errors.fields['citations.sourceId'] ?? errors.fields.removeCitations}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <SelectField

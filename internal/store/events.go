@@ -46,6 +46,7 @@ type Event struct {
 	StatusReason string        `json:"statusReason"`
 	SortOrder    int           `json:"sortOrder"`
 	Participants []Participant `json:"participants"`
+	Citations    []CitationRef `json:"citations"`
 	// Role is set when the event is listed for one of its participants
 	// rather than for its principal.
 	Role      string `json:"role,omitempty"`
@@ -76,6 +77,10 @@ type EventInput struct {
 	StatusReason string             `json:"statusReason"`
 	SortOrder    int                `json:"sortOrder"`
 	Participants []ParticipantInput `json:"participants"`
+	// AddCitations cites sources for the event.
+	AddCitations []NewCitation `json:"addCitations,omitempty"`
+	// RemoveCitations detaches citations from the event.
+	RemoveCitations []int64 `json:"removeCitations,omitempty"`
 }
 
 // Participant roles. RoleOther takes a CustomRole.
@@ -215,6 +220,9 @@ func (s *Store) createEvent(ctx context.Context, tx *sql.Tx, a Actor, in EventIn
 		if err := writeParticipants(ctx, tx, id, in.Participants); err != nil {
 			return err
 		}
+		if err := s.addCitations(ctx, tx, a, "event", id, in.AddCitations); err != nil {
+			return err
+		}
 		if e, err = s.getEvent(ctx, tx, a, id); err != nil {
 			return err
 		}
@@ -251,6 +259,12 @@ func (s *Store) UpdateEvent(ctx context.Context, a Actor, id int64, in EventInpu
 			return err
 		}
 		if err := writeParticipants(ctx, tx, id, in.Participants); err != nil {
+			return err
+		}
+		if err := s.addCitations(ctx, tx, a, "event", id, in.AddCitations); err != nil {
+			return err
+		}
+		if err := s.removeCitations(ctx, tx, a, "event", id, in.RemoveCitations); err != nil {
 			return err
 		}
 		if e, err = s.getEvent(ctx, tx, a, id); err != nil {
@@ -358,6 +372,17 @@ func (s *Store) loadEvents(ctx context.Context, q queryer, a Actor, where string
 	}
 	if err := s.attachParticipants(ctx, q, a, events); err != nil {
 		return nil, err
+	}
+	ids := make([]int64, len(events))
+	for i, e := range events {
+		ids[i] = e.ID
+	}
+	cits, err := citationRefs(ctx, q, a, "event", ids)
+	if err != nil {
+		return nil, err
+	}
+	for i := range events {
+		events[i].Citations = orEmpty(cits[events[i].ID])
 	}
 	return events, nil
 }
