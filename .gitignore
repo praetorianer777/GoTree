@@ -1,0 +1,18 @@
+# Go
+/gotree
+/dist/
+coverage.out
+
+# Frontend
+web/node_modules/
+web/dist/
+
+# Runtime data (SQLite database, uploaded media)
+/data/
+
+# IDE
+.idea/
+.vscode/
+
+# agent worktrees
+.claude/worktrees/
