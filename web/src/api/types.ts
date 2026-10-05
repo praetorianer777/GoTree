@@ -393,3 +393,80 @@ export interface VerifyReport {
   warnings: { line: number; message: string }[]
   dropped: TagStat[]
 }
+
+export type CheckRule =
+  | 'birth_after_death'
+  | 'burial_before_death'
+  | 'event_before_birth'
+  | 'event_after_death'
+  | 'too_old'
+  | 'living_too_old'
+  | 'parent_too_young'
+  | 'mother_too_old'
+  | 'born_after_mother_death'
+  | 'born_after_father_death'
+  | 'married_before_birth'
+  | 'married_after_death'
+  | 'invalid_date'
+
+export interface Finding {
+  rule: CheckRule
+  severity: 'error' | 'warning'
+  personId: number
+  otherPersonId?: number
+  familyId?: number
+  eventId?: number
+  eventType?: string
+  years?: number
+}
+
+export interface CheckReport {
+  findings: Finding[]
+  persons: Record<number, PersonRef>
+}
+
+export interface DateProposal {
+  eventId: number
+  type: string
+  customLabel: string
+  personId: number | null
+  familyId: number | null
+  personIds: number[]
+  raw: string
+  proposed: string
+  wasValid: boolean
+}
+
+export interface DateProposals {
+  items: DateProposal[]
+  unreadable: number
+  persons: Record<number, PersonRef>
+}
+
+export interface DateChange {
+  eventId: number
+  raw: string
+  date: string
+}
+
+export interface Kinship {
+  up: number
+  down: number
+  half: boolean
+  adoptive: boolean
+  /** Negative ids stand for the unknown parents of a family. */
+  ancestors: number[]
+  path: number[]
+}
+
+export type RelationshipKind = 'self' | 'blood' | 'spouse' | 'spouse_of_relative' | 'relative_of_spouse' | 'none'
+
+export interface RelationshipReport {
+  a: number
+  b: number
+  kind: RelationshipKind
+  kinship?: Kinship
+  via?: number
+  others: Kinship[]
+  persons: Record<number, PersonRef>
+}

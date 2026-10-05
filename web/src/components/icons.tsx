@@ -63,3 +63,18 @@ export const TransferIcon = () => (
     <path d="M17 20V7M13.5 10.5 17 7l3.5 3.5" />
   </Icon>
 )
+
+export const CheckIcon = () => (
+  <Icon>
+    <path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6l-8-3Z" />
+    <path d="m8.5 12 2.5 2.5 4.5-5" />
+  </Icon>
+)
+
+export const LinkIcon = () => (
+  <Icon>
+    <circle cx="6" cy="6" r="2.5" />
+    <circle cx="18" cy="18" r="2.5" />
+    <path d="M6 8.5v3a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3v-1.5" />
+  </Icon>
+)

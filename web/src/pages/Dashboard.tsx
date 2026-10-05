@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 import { getHealth } from '../api/client'
 import { PageHeading } from '../components/PageHeading'
 
@@ -31,6 +32,30 @@ export function Dashboard() {
           {status}
         </p>
       </section>
+      {/* The phone bar has no room for these; this is their way in there. */}
+      <nav aria-labelledby="more-tools">
+        <h2 id="more-tools" className="text-xl font-semibold">
+          {t('dashboard.more')}
+        </h2>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+          {(
+            [
+              ['/media', 'nav.media'],
+              ['/relationship', 'nav.relationship'],
+              ['/quality', 'nav.quality'],
+            ] as const
+          ).map(([to, key]) => (
+            <li key={to}>
+              <Link
+                to={to}
+                className="flex min-h-11 items-center rounded-lg border border-slate-200 px-4 py-2 font-medium hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
+              >
+                {t(key)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   )
 }
