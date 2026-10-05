@@ -117,9 +117,18 @@ func isAncestor(ctx context.Context, q queryer, ancestor, person int64) (bool, e
 
 // CreateFamily adds a family.
 func (s *Store) CreateFamily(ctx context.Context, a Actor, in FamilyInput) (Family, error) {
+	var f Family
+	err := s.tx(ctx, func(tx *sql.Tx) (err error) {
+		f, err = s.createFamily(ctx, tx, a, in)
+		return err
+	})
+	return f, err
+}
+
+func (s *Store) createFamily(ctx context.Context, tx *sql.Tx, a Actor, in FamilyInput) (Family, error) {
 	in.normalize()
 	var f Family
-	err := s.tx(ctx, func(tx *sql.Tx) error {
+	err := func() error {
 		if err := s.validateFamily(ctx, tx, a, 0, in); err != nil {
 			return err
 		}
@@ -137,7 +146,7 @@ func (s *Store) CreateFamily(ctx context.Context, a Actor, in FamilyInput) (Fami
 			return err
 		}
 		return s.logChange(ctx, tx, a, "family", id, "create", nil, f)
-	})
+	}()
 	return f, err
 }
 
@@ -185,6 +194,15 @@ func (s *Store) DeleteFamily(ctx context.Context, a Actor, id int64) error {
 // SetChild adds a child to a family, or updates how it relates to the
 // partners if it is already there.
 func (s *Store) SetChild(ctx context.Context, a Actor, familyID, childID int64, in ChildInput) (Family, error) {
+	var f Family
+	err := s.tx(ctx, func(tx *sql.Tx) (err error) {
+		f, err = s.setChild(ctx, tx, a, familyID, childID, in)
+		return err
+	})
+	return f, err
+}
+
+func (s *Store) setChild(ctx context.Context, tx *sql.Tx, a Actor, familyID, childID int64, in ChildInput) (Family, error) {
 	in.RelationPartner1 = strings.ToLower(strings.TrimSpace(in.RelationPartner1))
 	in.RelationPartner2 = strings.ToLower(strings.TrimSpace(in.RelationPartner2))
 	if in.RelationPartner1 == "" {
@@ -195,7 +213,7 @@ func (s *Store) SetChild(ctx context.Context, a Actor, familyID, childID int64, 
 	}
 
 	var f Family
-	err := s.tx(ctx, func(tx *sql.Tx) error {
+	err := func() error {
 		before, err := s.getFamily(ctx, tx, a, familyID)
 		if err != nil {
 			return err
@@ -253,7 +271,7 @@ func (s *Store) SetChild(ctx context.Context, a Actor, familyID, childID int64, 
 			return err
 		}
 		return s.logChange(ctx, tx, a, "family", familyID, "update", before, f)
-	})
+	}()
 	return f, err
 }
 

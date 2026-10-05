@@ -5,6 +5,9 @@ coverage.out
 
 # Frontend
 web/node_modules/
+web/.e2e-data/
+web/test-results/
+web/playwright-report/
 # web/dist/.gitkeep stays so go:embed compiles before the first frontend build;
 # web/public/.gitkeep puts it back after every build, which empties dist/
 web/dist/*

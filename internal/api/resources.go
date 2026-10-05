@@ -1,9 +1,11 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/praetorianer777/gotree/internal/gendate"
 	"github.com/praetorianer777/gotree/internal/store"
 )
 
@@ -14,7 +16,9 @@ func (s *Server) resourceRoutes(r chi.Router) {
 		r.Get("/{id}", s.getPerson)
 		r.Put("/{id}", s.updatePerson)
 		r.Delete("/{id}", s.deletePerson)
+		r.Post("/{id}/relatives", s.addRelative)
 	})
+	r.Get("/dates/parse", parseDate)
 	r.Route("/families", func(r chi.Router) {
 		r.Post("/", s.createFamily)
 		r.Get("/{id}", s.getFamily)
@@ -234,5 +238,40 @@ func (s *Server) updatePlace(w http.ResponseWriter, r *http.Request) {
 func (s *Server) deletePlace(w http.ResponseWriter, r *http.Request) {
 	if id, ok := pathID(w, r, "id"); ok {
 		s.noContent(w, s.Store.DeletePlace(r.Context(), actorFrom(r), id))
+	}
+}
+
+func (s *Server) addRelative(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var in store.RelativeInput
+	if !decode(w, r, &in) {
+		return
+	}
+	res, err := s.Store.AddRelative(r.Context(), actorFrom(r), id, in)
+	s.respond(w, http.StatusCreated, res, err)
+}
+
+type parsedDate struct {
+	Valid      bool   `json:"valid"`
+	Empty      bool   `json:"empty"`
+	Normalized string `json:"normalized"`
+	Qualifier  string `json:"qualifier"`
+	Error      string `json:"error,omitempty"`
+}
+
+// parseDate lets the UI preview how a date will be stored, using the same
+// parser as the server instead of a second implementation in JavaScript.
+func parseDate(w http.ResponseWriter, r *http.Request) {
+	d, err := gendate.Parse(r.URL.Query().Get("q"))
+	switch {
+	case errors.Is(err, gendate.ErrEmpty):
+		writeJSON(w, http.StatusOK, parsedDate{Empty: true})
+	case err != nil:
+		writeJSON(w, http.StatusOK, parsedDate{Error: err.Error()})
+	default:
+		writeJSON(w, http.StatusOK, parsedDate{Valid: true, Normalized: d.String(), Qualifier: string(d.Qualifier)})
 	}
 }

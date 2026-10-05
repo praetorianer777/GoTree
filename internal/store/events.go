@@ -183,9 +183,18 @@ func (s *Store) validateEvent(ctx context.Context, q queryer, a Actor, in EventI
 
 // CreateEvent adds an event.
 func (s *Store) CreateEvent(ctx context.Context, a Actor, in EventInput) (Event, error) {
+	var e Event
+	err := s.tx(ctx, func(tx *sql.Tx) (err error) {
+		e, err = s.createEvent(ctx, tx, a, in)
+		return err
+	})
+	return e, err
+}
+
+func (s *Store) createEvent(ctx context.Context, tx *sql.Tx, a Actor, in EventInput) (Event, error) {
 	in.normalize()
 	var e Event
-	err := s.tx(ctx, func(tx *sql.Tx) error {
+	err := func() error {
 		if err := s.validateEvent(ctx, tx, a, in); err != nil {
 			return err
 		}
@@ -210,7 +219,7 @@ func (s *Store) CreateEvent(ctx context.Context, a Actor, in EventInput) (Event,
 			return err
 		}
 		return s.logChange(ctx, tx, a, "event", id, "create", nil, e)
-	})
+	}()
 	return e, err
 }
 
