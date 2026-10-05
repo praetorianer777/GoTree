@@ -49,6 +49,14 @@ export const SourceIcon = () => (
   </Icon>
 )
 
+export const PhotoIcon = () => (
+  <Icon>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <circle cx="9" cy="10" r="2" />
+    <path d="m21 16-5-5-8 8" />
+  </Icon>
+)
+
 export const TransferIcon = () => (
   <Icon>
     <path d="M7 4v13M3.5 13.5 7 17l3.5-3.5" />

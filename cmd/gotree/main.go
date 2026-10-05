@@ -15,6 +15,7 @@ import (
 	"github.com/praetorianer777/gotree/internal/api"
 	"github.com/praetorianer777/gotree/internal/config"
 	"github.com/praetorianer777/gotree/internal/db"
+	"github.com/praetorianer777/gotree/internal/media"
 	"github.com/praetorianer777/gotree/internal/store"
 	"github.com/praetorianer777/gotree/web"
 )
@@ -59,10 +60,12 @@ func run(log *slog.Logger) error {
 	srv := &http.Server{
 		Addr: cfg.ListenAddr,
 		Handler: (&api.Server{
-			Store:    st,
-			Version:  version,
-			Frontend: web.Dist(),
-			Log:      log,
+			Store:     st,
+			Files:     media.Files{Root: cfg.MediaDir()},
+			MaxUpload: int64(cfg.MaxUploadMB) << 20,
+			Version:   version,
+			Frontend:  web.Dist(),
+			Log:       log,
 		}).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}

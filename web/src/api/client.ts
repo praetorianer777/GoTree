@@ -34,6 +34,23 @@ async function request<T>(method: string, path: string, body?: unknown, signal?:
   return (await res.json()) as T
 }
 
+/** Uploads one file as multipart form data ("file"). */
+export async function uploadFile<T>(path: string, file: File): Promise<T> {
+  const body = new FormData()
+  body.append('file', file)
+  const res = await fetch(`/api${path}`, { method: 'POST', body, headers: { Accept: 'application/json' } })
+  if (!res.ok) {
+    let message = res.statusText
+    try {
+      message = ((await res.json()) as { error?: string }).error ?? message
+    } catch {
+      // keep the status text
+    }
+    throw new ApiError(res.status, message)
+  }
+  return (await res.json()) as T
+}
+
 export const getJSON = <T>(path: string, signal?: AbortSignal) => request<T>('GET', path, undefined, signal)
 export const postJSON = <T>(path: string, body?: unknown) => request<T>('POST', path, body)
 export const putJSON = <T>(path: string, body: unknown) => request<T>('PUT', path, body)

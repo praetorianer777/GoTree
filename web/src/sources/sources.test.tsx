@@ -54,7 +54,7 @@ describe('sources', () => {
         200,
         {
           id: 1, givenNames: 'Anna', surname: 'Müller', namePrefix: '', nameSuffix: '', nickname: '', sex: 'F',
-          isLiving: null, living: false, notes: '', alternateNames: [], citations: [], createdAt: '', updatedAt: '',
+          isLiving: null, living: false, notes: '', alternateNames: [], citations: [], portrait: null, createdAt: '', updatedAt: '',
           events: [], parentFamilies: [], partnerFamilies: [],
         },
       ],

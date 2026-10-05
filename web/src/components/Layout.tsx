@@ -6,14 +6,18 @@ import { getAuthState, logout } from '../api/client'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { Button } from './Button'
 import { ShortcutsHelp } from './ShortcutsHelp'
-import { HomeIcon, PeopleIcon, SourceIcon, TransferIcon, TreeIcon } from './icons'
+import { UpdateNotice } from './UpdateNotice'
+import { HomeIcon, PeopleIcon, PhotoIcon, SourceIcon, TransferIcon, TreeIcon } from './icons'
 
+// The phone bar has room for five; the rest appear from md up and are
+// reachable on phones through the pages that use them.
 const navItems = [
-  { to: '/', key: 'nav.dashboard', Icon: HomeIcon, end: true },
-  { to: '/people', key: 'nav.people', Icon: PeopleIcon, end: false },
-  { to: '/tree', key: 'nav.tree', Icon: TreeIcon, end: false },
-  { to: '/sources', key: 'nav.sources', Icon: SourceIcon, end: false },
-  { to: '/import-export', key: 'nav.importExport', Icon: TransferIcon, end: false },
+  { to: '/', key: 'nav.dashboard', Icon: HomeIcon, end: true, phone: true },
+  { to: '/people', key: 'nav.people', Icon: PeopleIcon, end: false, phone: true },
+  { to: '/tree', key: 'nav.tree', Icon: TreeIcon, end: false, phone: true },
+  { to: '/sources', key: 'nav.sources', Icon: SourceIcon, end: false, phone: true },
+  { to: '/media', key: 'nav.media', Icon: PhotoIcon, end: false, phone: false },
+  { to: '/import-export', key: 'nav.importExport', Icon: TransferIcon, end: false, phone: true },
 ] as const
 
 export function Layout() {
@@ -96,8 +100,8 @@ export function Layout() {
           className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950 md:sticky md:top-14 md:h-[calc(100dvh-3.5rem)] md:w-60 md:shrink-0 md:border-t-0 md:border-r md:pb-0"
         >
           <ul className="grid grid-cols-5 md:flex md:flex-col md:gap-1 md:p-3">
-            {navItems.map(({ to, key, Icon, end }) => (
-              <li key={to}>
+            {navItems.map(({ to, key, Icon, end, phone }) => (
+              <li key={to} className={phone ? undefined : 'hidden md:block'}>
                 <NavLink
                   to={to}
                   end={end}
@@ -128,6 +132,7 @@ export function Layout() {
         </main>
       </div>
       <ShortcutsHelp open={help} onClose={() => setHelp(false)} />
+      <UpdateNotice />
     </div>
   )
 }

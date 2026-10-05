@@ -8,6 +8,7 @@ import { PageHeading } from '../components/PageHeading'
 import { useDebounced } from '../hooks/useDebounced'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { fullName, lifespan } from '../lib/people'
+import { Avatar } from '../media/Avatar'
 import { PersonDialog } from '../people/PersonDialog'
 
 const pageSize = 50
@@ -86,7 +87,10 @@ export function PeoplePage() {
                 to={`/people/${p.id}`}
                 className="flex min-h-14 items-center justify-between gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-900"
               >
-                <span className="font-medium">{fullName(p) ?? t('person.unknown')}</span>
+                <span className="flex items-center gap-3">
+                  <Avatar person={p} size={40} />
+                  <span className="font-medium">{fullName(p) ?? t('person.unknown')}</span>
+                </span>
                 <span className="shrink-0 text-sm text-slate-600 dark:text-slate-400">{lifespan(p)}</span>
               </Link>
             </li>

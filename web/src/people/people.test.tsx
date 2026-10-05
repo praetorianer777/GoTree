@@ -13,6 +13,7 @@ const ref = (id: number, givenNames: string, extra: Partial<PersonRef> = {}): Pe
   birthDate: '',
   deathDate: '',
   living: false,
+  portrait: null,
   ...extra,
 })
 
@@ -63,6 +64,7 @@ const paul: PersonDetail = {
   notes: 'Worked as a weaver.',
   alternateNames: [],
   citations: [],
+  portrait: null,
   createdAt: '',
   updatedAt: '',
   events: [
@@ -100,7 +102,7 @@ describe('people list', () => {
 
     expect(await screen.findByRole('link', { name: /Paul Weber/ })).toHaveAttribute('href', '/people/1')
     expect(screen.getByText('1890 – 1950')).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('1 person')
+    expect(screen.getByText('1 person')).toHaveAttribute('role', 'status')
     expect(await axeViolations(container)).toEqual([])
 
     await user.type(screen.getByRole('searchbox', { name: 'Search people' }), 'webr')

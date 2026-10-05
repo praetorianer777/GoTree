@@ -2,6 +2,7 @@ import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { useTranslation } from 'react-i18next'
 import type { PersonRef } from '../api/types'
 import { fullName, lifespan } from '../lib/people'
+import { Avatar } from '../media/Avatar'
 
 export interface PersonNodeData extends Record<string, unknown> {
   person: PersonRef
@@ -54,7 +55,7 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
         onKeyDown={(e) => data.onKey(p.id, e)}
         style={interactive}
         className={[
-          'nodrag flex h-16 w-[180px] flex-col justify-center rounded-xl border-2 bg-white px-3 text-left shadow-sm dark:bg-slate-900',
+          'nodrag flex h-16 w-[180px] items-center gap-2 rounded-xl border-2 bg-white px-2 text-left shadow-sm dark:bg-slate-900',
           data.selected
             ? 'border-brand-700 ring-2 ring-brand-500 dark:border-brand-100'
             : data.root
@@ -63,6 +64,8 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
           p.sex === 'F' ? 'border-l-8 border-l-rose-500' : p.sex === 'M' ? 'border-l-8 border-l-sky-600' : '',
         ].join(' ')}
       >
+        <Avatar person={p} size={40} />
+        <span className="flex min-w-0 flex-col">
         <span className="flex items-center gap-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
           {sexMark[p.sex] && (
             <span aria-hidden="true" className="text-slate-600 dark:text-slate-300">
@@ -78,6 +81,7 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
             {t(`sex.${p.sex}`)}
             {data.root ? `, ${t('tree.rootPerson')}` : ''}
           </span>
+        </span>
         </span>
       </button>
     </>

@@ -12,6 +12,7 @@ const person = (id: number, givenNames: string, extra: Partial<PersonRef> = {}):
   birthDate: '',
   deathDate: '',
   living: false,
+  portrait: null,
   ...extra,
 })
 

@@ -13,6 +13,7 @@ import (
 	"testing/fstest"
 
 	"github.com/praetorianer777/gotree/internal/db"
+	"github.com/praetorianer777/gotree/internal/media"
 	"github.com/praetorianer777/gotree/internal/store"
 )
 
@@ -24,10 +25,12 @@ func newServer(t *testing.T, frontend fstest.MapFS) *httptest.Server {
 	}
 	t.Cleanup(func() { conn.Close() })
 	s := &Server{
-		Store:    store.New(conn),
-		Version:  "1.2.3",
-		Frontend: frontend,
-		Log:      slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Store:     store.New(conn),
+		Files:     media.Files{Root: filepath.Join(t.TempDir(), "media")},
+		MaxUpload: 1 << 20,
+		Version:   "1.2.3",
+		Frontend:  frontend,
+		Log:       slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
 	ts := httptest.NewServer(s.Handler())
 	testServers[ts] = s

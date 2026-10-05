@@ -5,14 +5,17 @@
     "mainNavigation": "Main navigation",
     "loading": "Loading…",
     "logOut": "Log out",
-    "signedInAs": "Signed in as {{name}}"
+    "signedInAs": "Signed in as {{name}}",
+    "updateReady": "A new version of GoTree is ready.",
+    "reload": "Reload now"
   },
   "nav": {
     "dashboard": "Home",
     "people": "People",
     "tree": "Tree",
     "importExport": "Import & export",
-    "sources": "Sources"
+    "sources": "Sources",
+    "media": "Photos & media"
   },
   "dashboard": {
     "title": "Welcome to GoTree",
@@ -365,5 +368,55 @@
     "noCitations": "Nothing cites this source yet.",
     "noPage": "No page given",
     "supports": "Supports:"
+  },
+  "media": {
+    "section": "Photos and documents",
+    "none": "Nothing here yet.",
+    "upload": "Upload files",
+    "uploading": "Uploading {{done}} of {{total}}…",
+    "uploadFailed": "{{name}}: {{message}}",
+    "intro": "Photos, scanned documents, letters and recordings. Tag faces and link them to people.",
+    "kinds": {
+      "image": "Photo",
+      "document": "Document",
+      "audio": "Recording",
+      "video": "Video"
+    },
+    "download": "Download",
+    "delete": "Delete file",
+    "deleteConfirm": "Delete “{{title}}”? It is removed from everyone it is linked to.",
+    "original": "Open original",
+    "openDocument": "Open {{name}}",
+    "tagFace": "Mark a face",
+    "drawingOn": "Drawing: drag over a face",
+    "drawHint": "Drag a box around a face. Without a mouse or touch screen, use “Add a person” below to link someone without a box.",
+    "whoIsThis": "Who is this?",
+    "person": "Person",
+    "faceName": "Or a name",
+    "faceNameHint": "If the person is not in the tree yet.",
+    "saveFace": "Save face",
+    "faces": "Faces",
+    "noFaces": "No faces marked yet.",
+    "unnamedFace": "Unnamed face",
+    "faceOf": "Face: {{name}}",
+    "imported": "Imported from the photo",
+    "matchFace": "Who is “{{name}}”?",
+    "usePortrait": "Use as portrait",
+    "usePortraitShort": "Portrait",
+    "removeFace": "Remove face",
+    "shownWith": "Shown with",
+    "notLinked": "Not linked to anyone yet.",
+    "linkPerson": "Add a person",
+    "details": "Details",
+    "description": "Description",
+    "descriptionHint": "Who, where and what is shown; also read by screen readers.",
+    "transcript": "Transcript",
+    "transcriptHint": "The text of a letter or document.",
+    "transcriptHintAudio": "What is said in the recording.",
+    "saved": "Saved.",
+    "camera": "From the camera",
+    "takenAt": "Taken {{date}}",
+    "location": "Location {{lat}}, {{lng}} (map)",
+    "addAsEvent": "Add as event for {{name}}"
   }
 }

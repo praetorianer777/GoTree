@@ -41,19 +41,21 @@ type Person struct {
 	AlternateNames []AlternateName `json:"alternateNames"`
 	// Citations support the person as a whole.
 	Citations []CitationRef `json:"citations"`
+	Portrait  *PortraitRef  `json:"portrait"`
 	CreatedAt string        `json:"createdAt"`
 	UpdatedAt string        `json:"updatedAt"`
 }
 
 // PersonRef is the short form of a person used in lists and relations.
 type PersonRef struct {
-	ID         int64  `json:"id"`
-	GivenNames string `json:"givenNames"`
-	Surname    string `json:"surname"`
-	Sex        string `json:"sex"`
-	BirthDate  string `json:"birthDate"`
-	DeathDate  string `json:"deathDate"`
-	Living     bool   `json:"living"`
+	ID         int64        `json:"id"`
+	GivenNames string       `json:"givenNames"`
+	Surname    string       `json:"surname"`
+	Sex        string       `json:"sex"`
+	BirthDate  string       `json:"birthDate"`
+	DeathDate  string       `json:"deathDate"`
+	Living     bool         `json:"living"`
+	Portrait   *PortraitRef `json:"portrait"`
 }
 
 // AlternateNameInput is the editable part of an AlternateName. ID keeps an
@@ -376,6 +378,7 @@ func (s *Store) getPerson(ctx context.Context, q queryer, a Actor, id int64) (Pe
 		return Person{}, err
 	}
 	p.Living = refs[id].Living
+	p.Portrait = refs[id].Portrait
 
 	cits, err := citationRefs(ctx, q, a, "person", []int64{id})
 	if err != nil {
@@ -535,7 +538,8 @@ func (s *Store) personRefs(ctx context.Context, q queryer, a Actor, ids []int64)
 				WHERE e.person_id = p.id AND e.type IN ('DEAT', 'BURI', 'CREM') AND e.status <> 'disproven'
 				ORDER BY e.type <> 'DEAT', e.date_sort IS NULL, e.date_sort LIMIT 1),
 			EXISTS (SELECT 1 FROM events e
-				WHERE e.person_id = p.id AND e.type IN ('DEAT', 'BURI', 'CREM') AND e.status <> 'disproven')
+				WHERE e.person_id = p.id AND e.type IN ('DEAT', 'BURI', 'CREM') AND e.status <> 'disproven'),
+			p.portrait_media_id, p.portrait_region_id
 		FROM persons p
 		WHERE p.tree_id = ? AND p.id IN (`+placeholders(len(ids))+`)`, args...)
 	if err != nil {
@@ -549,8 +553,13 @@ func (s *Store) personRefs(ctx context.Context, q queryer, a Actor, ids []int64)
 		var stated, birthSort sql.NullInt64
 		var birth, death sql.NullString
 		var dead bool
-		if err := rows.Scan(&r.ID, &r.GivenNames, &r.Surname, &r.Sex, &stated, &birth, &birthSort, &death, &dead); err != nil {
+		var portrait, portraitRegion sql.NullInt64
+		if err := rows.Scan(&r.ID, &r.GivenNames, &r.Surname, &r.Sex, &stated, &birth, &birthSort, &death, &dead,
+			&portrait, &portraitRegion); err != nil {
 			return nil, err
+		}
+		if portrait.Valid {
+			r.Portrait = &PortraitRef{MediaID: portrait.Int64, RegionID: ptrID(portraitRegion)}
 		}
 		r.BirthDate, r.DeathDate = birth.String, death.String
 		switch {

@@ -13,6 +13,7 @@ export interface PersonRef {
   birthDate: string
   deathDate: string
   living: boolean
+  portrait: PortraitRef | null
 }
 
 export interface AlternateName {
@@ -42,6 +43,7 @@ export interface Person {
   notes: string
   alternateNames: AlternateName[]
   citations: CitationRef[]
+  portrait: PortraitRef | null
   createdAt: string
   updatedAt: string
 }
@@ -306,4 +308,60 @@ export interface Citation {
 
 export interface SourceDetail extends Source {
   citations: Citation[]
+}
+
+export interface PortraitRef {
+  mediaId: number
+  regionId: number | null
+}
+
+export type MediaKind = 'image' | 'document' | 'audio' | 'video'
+
+export interface MediaRef {
+  id: number
+  kind: MediaKind
+  mime: string
+  title: string
+  width: number | null
+  height: number | null
+}
+
+export interface MediaRegion {
+  id: number
+  person: PersonRef | null
+  name: string
+  x: number
+  y: number
+  w: number
+  h: number
+  source: 'manual' | 'xmp'
+}
+
+export interface MediaLink {
+  entityType: 'person' | 'event' | 'family' | 'source'
+  entityId: number
+  label: string
+  personId: number | null
+}
+
+export interface Media extends MediaRef {
+  size: number
+  originalName: string
+  date: string
+  description: string
+  transcript: string
+  takenAt: string
+  lat: number | null
+  lng: number | null
+  links: MediaLink[]
+  regions: MediaRegion[]
+}
+
+export interface RegionInput {
+  personId: number | null
+  name: string
+  x: number
+  y: number
+  w: number
+  h: number
 }

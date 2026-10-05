@@ -9,7 +9,7 @@ describe('app shell', () => {
     mockApi({})
     renderApp()
     expect(await screen.findByText('Server online · version 1.2.3')).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('version 1.2.3')
+    expect(screen.getByText('Server online · version 1.2.3')).toHaveAttribute('role', 'status')
   })
 
   it('reports an unreachable server', async () => {

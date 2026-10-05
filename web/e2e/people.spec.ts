@@ -13,7 +13,7 @@ test('build a small family by keyboard and mouse', async ({ page }) => {
 
   // New person with the n shortcut; the dialog focuses the first field.
   await page.goto('/people')
-  await expect(page.getByRole('status')).toBeVisible()
+  await expect(page.locator('#people-status')).toBeVisible()
   await page.keyboard.press('n')
   const dialog = page.getByRole('dialog', { name: 'New person' })
   await expect(dialog.getByLabel('Given names')).toBeFocused()
@@ -72,7 +72,7 @@ test('build a small family by keyboard and mouse', async ({ page }) => {
   // Search ignores case and finds all three.
   await page.goto('/people')
   await page.getByRole('searchbox', { name: 'Search people' }).fill(surname.toLowerCase())
-  await expect(page.getByRole('status')).toHaveText('3 people found')
+  await expect(page.locator('#people-status')).toHaveText('3 people found')
   await expectAccessible(page)
 })
 
@@ -90,5 +90,5 @@ test('delete a person after confirming', async ({ page }) => {
   await confirm.getByRole('button', { name: 'Delete' }).click()
   await expect(page).toHaveURL(/\/people$/)
   await page.getByRole('searchbox', { name: 'Search people' }).fill(name)
-  await expect(page.getByRole('status')).toHaveText('0 people found')
+  await expect(page.locator('#people-status')).toHaveText('0 people found')
 })

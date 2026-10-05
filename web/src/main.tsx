@@ -24,7 +24,12 @@ const queryClient: QueryClient = new QueryClient({
   }),
 })
 
-registerSW({ immediate: true })
+// A new version waits until the user chooses to reload; see UpdateNotice.
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh: () => window.dispatchEvent(new CustomEvent('gotree:update-ready')),
+})
+window.addEventListener('gotree:apply-update', () => void updateSW(true))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

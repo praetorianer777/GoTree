@@ -37,6 +37,7 @@ or download a binary from the releases page and run `./gotree`. Open http://loca
 | Data directory (database, media) | `-data-dir` | `GOTREE_DATA_DIR` | `./data` (`/data` in Docker) |
 | Listen address | `-listen` | `GOTREE_LISTEN_ADDR` | `:8080` |
 | First admin account (only used while there is none) | | `GOTREE_ADMIN_USER`, `GOTREE_ADMIN_PASSWORD` | `admin`, unset |
+| Largest upload (MB) | | `GOTREE_MAX_UPLOAD_MB` | `100` |
 
 On first start GoTree asks you in the browser to create the admin account and name your tree.
 For unattended installs, set `GOTREE_ADMIN_PASSWORD` instead.
@@ -45,7 +46,9 @@ Behind a reverse proxy, terminate TLS there and forward `X-Forwarded-Proto: http
 cookie is marked secure. Failed logins are throttled per client address; GoTree sees the proxy's
 address, so the limit then applies to all clients together.
 
-Everything lives in the data directory; back it up and you have backed up GoTree.
+Everything lives in the data directory (the database and `media/` with the uploaded files); back
+it up and you have backed up GoTree. Behind a reverse proxy, allow request bodies as large as the
+upload limit.
 
 ## Development
 

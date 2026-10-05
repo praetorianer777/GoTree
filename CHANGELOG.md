@@ -9,6 +9,16 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Photos, documents and recordings: upload them to people (stored once even when uploaded twice),
+  view, describe and transcribe them, tag faces by drawing a box or import the face tags other
+  photo tools wrote, and use a photo or a face as a person's portrait, shown in lists and on the
+  tree (#15)
+
+### Changed
+
+- A new version of GoTree no longer reloads open pages by itself; a notice offers to reload, so
+  nothing being typed or uploaded is lost (#15)
+
 - Sources and archives: record where facts come from, cite a source with page and reliability
   on events, people and relationships, and see on each source what it supports (#13)
 

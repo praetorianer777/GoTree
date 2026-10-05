@@ -7,6 +7,8 @@ import { NotFound } from './pages/NotFound'
 import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
 import { Placeholder } from './pages/Placeholder'
+import { MediaListPage } from './pages/MediaListPage'
+import { MediaPage } from './pages/MediaPage'
 import { SourcePage } from './pages/SourcePage'
 import { SourcesPage } from './pages/SourcesPage'
 import { TreePage } from './pages/TreePage'
@@ -23,6 +25,8 @@ export function App() {
           <Route path="tree" element={<TreePage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="sources/:id" element={<SourcePage />} />
+          <Route path="media" element={<MediaListPage />} />
+          <Route path="media/:id" element={<MediaPage />} />
           <Route path="import-export" element={<Placeholder title={t('nav.importExport')} />} />
           <Route path="*" element={<NotFound />} />
         </Route>
