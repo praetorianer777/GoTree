@@ -57,6 +57,12 @@ if [[ -f web/package.json ]]; then
 
   echo "🏗️  Frontend build"
   (cd web && npm run build)
+
+  # The end-to-end tests drive the real binary with the embedded frontend
+  # in the system's Chrome at phone and desktop size, with axe on each page.
+  echo "🌐 End-to-end tests"
+  CGO_ENABLED=0 go build -o gotree ./cmd/gotree
+  (cd web && npm run e2e)
 fi
 
 echo "✅ All tests passed"

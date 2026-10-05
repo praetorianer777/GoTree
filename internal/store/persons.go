@@ -149,12 +149,21 @@ func (in PersonInput) validate() error {
 
 // CreatePerson adds a person.
 func (s *Store) CreatePerson(ctx context.Context, a Actor, in PersonInput) (Person, error) {
+	var p Person
+	err := s.tx(ctx, func(tx *sql.Tx) (err error) {
+		p, err = s.createPerson(ctx, tx, a, in)
+		return err
+	})
+	return p, err
+}
+
+func (s *Store) createPerson(ctx context.Context, tx *sql.Tx, a Actor, in PersonInput) (Person, error) {
 	in.normalize()
 	if err := in.validate(); err != nil {
 		return Person{}, err
 	}
 	var p Person
-	err := s.tx(ctx, func(tx *sql.Tx) error {
+	err := func() error {
 		now := s.now()
 		res, err := tx.ExecContext(ctx, `
 			INSERT INTO persons (tree_id, given_names, surname, name_prefix, name_suffix, nickname, sex, is_living, notes,
@@ -176,7 +185,7 @@ func (s *Store) CreatePerson(ctx context.Context, a Actor, in PersonInput) (Pers
 			return err
 		}
 		return s.logChange(ctx, tx, a, "person", id, "create", nil, p)
-	})
+	}()
 	return p, err
 }
 

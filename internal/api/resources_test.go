@@ -104,3 +104,38 @@ func TestRequestErrors(t *testing.T) {
 		t.Errorf("empty body: status %d", status)
 	}
 }
+
+func TestAddRelativeAndDatePreview(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	c := loggedIn(t, ts)
+
+	var paul store.Person
+	c.call("POST", "/api/persons", map[string]any{"givenNames": "Paul"}, http.StatusCreated, &paul)
+	var res store.RelativeResult
+	c.call("POST", fmt.Sprintf("/api/persons/%d/relatives", paul.ID), map[string]any{
+		"relation": "partner", "person": map[string]any{"givenNames": "Eva"},
+	}, http.StatusCreated, &res)
+	if res.Person.GivenNames != "Eva" || len(res.Family.Events) != 1 {
+		t.Errorf("relative: %+v", res)
+	}
+	var e errorBody
+	c.call("POST", fmt.Sprintf("/api/persons/%d/relatives", paul.ID), map[string]any{"relation": "cousin", "person": map[string]any{}},
+		http.StatusUnprocessableEntity, &e)
+	if e.Fields["relation"] == "" {
+		t.Errorf("fields: %+v", e)
+	}
+
+	var d parsedDate
+	c.call("GET", "/api/dates/parse?q=abt+12.3.1850", nil, http.StatusOK, &d)
+	if !d.Valid || d.Normalized != "ABT 12 MAR 1850" || d.Qualifier != "ABT" {
+		t.Errorf("parse: %+v", d)
+	}
+	c.call("GET", "/api/dates/parse?q=31+FEB+1850", nil, http.StatusOK, &d)
+	if d.Valid || d.Error == "" {
+		t.Errorf("invalid date: %+v", d)
+	}
+	c.call("GET", "/api/dates/parse?q=", nil, http.StatusOK, &d)
+	if !d.Empty {
+		t.Errorf("empty date: %+v", d)
+	}
+}

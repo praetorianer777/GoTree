@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet, useLocation } from 'react-router'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { getAuthState, logout } from '../api/client'
+import { useShortcuts } from '../hooks/useShortcuts'
 import { Button } from './Button'
+import { ShortcutsHelp } from './ShortcutsHelp'
 import { HomeIcon, PeopleIcon, TransferIcon, TreeIcon } from './icons'
 
 const navItems = [
@@ -30,6 +32,23 @@ export function Layout() {
     },
   })
   const user = auth.data?.user
+  const navigate = useNavigate()
+  const [help, setHelp] = useState(false)
+  const onPeople = location.pathname === '/people'
+
+  // The people page handles "/" and "n" itself; elsewhere they go there.
+  useShortcuts({
+    '?': () => setHelp(true),
+    ...(onPeople
+      ? {}
+      : {
+          '/': () => {
+            navigate('/people')
+            setTimeout(() => document.getElementById('people-search')?.focus(), 50)
+          },
+          n: () => navigate('/people?new=1'),
+        }),
+  })
 
   // Screen readers get no page-load event on client-side navigation, so focus
   // goes to the new page's heading; on the initial load it stays put.
@@ -107,6 +126,7 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+      <ShortcutsHelp open={help} onClose={() => setHelp(false)} />
     </div>
   )
 }

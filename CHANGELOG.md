@@ -9,6 +9,13 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- People list with search, and a person page with life events in date order, parents and
+  siblings, partners and children (#9)
+- Add parents, partners, children and siblings in any order, as new or existing people; adding
+  a married partner creates the marriage event (#9)
+- Dialogs to edit people, events (with a live date preview, place search and creation, shared
+  participants and fact status) and families; keyboard shortcuts, `?` lists them (#9)
+
 - People with alternate names, families with unknown partners and per-parent child relations,
   events with GEDCOM dates, shared events with roles, a place hierarchy, and disputed or
   disproven facts; name search ignores accents and covers alternate names (#7)
