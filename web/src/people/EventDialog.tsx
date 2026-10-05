@@ -25,15 +25,26 @@ interface Props {
   owner: EventOwner
   /** Edit this event, or create a new one when absent. */
   event?: LifeEvent
-  /** Preselected type for a new event. */
+  /** Preselected values for a new event. */
   defaultType?: string
+  defaultDate?: string
+  defaultDescription?: string
 }
 
-export function EventDialog({ open, onClose, owner, event, defaultType }: Props) {
+export function EventDialog({ open, onClose, owner, event, defaultType, defaultDate, defaultDescription }: Props) {
   const { t } = useTranslation()
   return (
     <Dialog open={open} onClose={onClose} title={event ? t('event.edit') : t('event.new')} wide>
-      {open && <EventForm owner={owner} event={event} defaultType={defaultType} onClose={onClose} />}
+      {open && (
+        <EventForm
+          owner={owner}
+          event={event}
+          defaultType={defaultType}
+          defaultDate={defaultDate}
+          defaultDescription={defaultDescription}
+          onClose={onClose}
+        />
+      )}
     </Dialog>
   )
 }
@@ -44,7 +55,7 @@ interface ParticipantRow {
   customRole: string
 }
 
-function EventForm({ owner, event, defaultType, onClose }: Omit<Props, 'open'>) {
+function EventForm({ owner, event, defaultType, defaultDate, defaultDescription, onClose }: Omit<Props, 'open'>) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const isFamily = 'familyId' in owner
@@ -52,9 +63,9 @@ function EventForm({ owner, event, defaultType, onClose }: Omit<Props, 'open'>) 
 
   const [type, setType] = useState(event?.type ?? defaultType ?? types[0] ?? 'EVEN')
   const [customLabel, setCustomLabel] = useState(event?.customLabel ?? '')
-  const [date, setDate] = useState(event?.date.raw ?? '')
+  const [date, setDate] = useState(event?.date.raw ?? defaultDate ?? '')
   const [place, setPlace] = useState<PlaceRef | null>(event?.place ?? null)
-  const [description, setDescription] = useState(event?.description ?? '')
+  const [description, setDescription] = useState(event?.description ?? defaultDescription ?? '')
   const [notes, setNotes] = useState(event?.notes ?? '')
   const [status, setStatus] = useState<FactStatus>(event?.status ?? 'accepted')
   const [statusReason, setStatusReason] = useState(event?.statusReason ?? '')

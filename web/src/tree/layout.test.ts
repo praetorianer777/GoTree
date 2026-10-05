@@ -3,7 +3,7 @@ import type { PersonRef, TreeFamily, TreeGraph } from '../api/types'
 import { CARD_H, CARD_W, layoutTree, type LayoutNode, type TreeView } from './layout'
 import { buildAncestors, indexGraph } from './model'
 
-const person = (id: number): PersonRef => ({ id, givenNames: `P${id}`, surname: '', sex: 'U', birthDate: '', deathDate: '', living: false })
+const person = (id: number): PersonRef => ({ id, givenNames: `P${id}`, surname: '', sex: 'U', birthDate: '', deathDate: '', living: false, portrait: null })
 const fam = (id: number, p1: number | null, p2: number | null, children: number[]): TreeFamily => ({
   id,
   partner1Id: p1,

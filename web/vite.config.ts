@@ -9,7 +9,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' instead of 'autoUpdate': an automatic reload when a new
+      // version activates could throw away what someone is typing or uploading.
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'GoTree',

@@ -19,6 +19,9 @@ import { Timeline } from '../people/Timeline'
 import { timelineItems, type TimelineItem } from '../people/timelineItems'
 import { NotFound } from './NotFound'
 import { CitationText } from '../sources/CitationEditor'
+import { Avatar } from '../media/Avatar'
+import { Gallery } from '../media/Gallery'
+import { UploadButton } from '../media/UploadButton'
 
 type Open =
   | { kind: 'edit' }
@@ -69,7 +72,9 @@ export function PersonPage() {
     <article className="max-w-4xl space-y-8">
       <header className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+          <div className="flex items-center gap-4">
+            <Avatar person={p} size={96} />
+            <div>
             <PageHeading title={name}>{name}</PageHeading>
             <p className="mt-1 text-slate-700 dark:text-slate-300">
               {[t(`sex.${p.sex}`), lifespan(summary(p)), p.living ? t('person.living') : t('person.deceased')]
@@ -77,6 +82,7 @@ export function PersonPage() {
                 .join(' · ')}
             </p>
             {p.nickname && <p className="text-slate-700 dark:text-slate-300">{t('person.nicknameIs', { nickname: p.nickname })}</p>}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => setOpen({ kind: 'edit' })}>
@@ -209,6 +215,10 @@ export function PersonPage() {
             </FamilyCard>
           )
         })}
+      </Section>
+
+      <Section title={t('media.section')} actions={<UploadButton owner={{ entityType: 'person', entityId: p.id }} />}>
+        <Gallery owner={{ entityType: 'person', entityId: p.id }} />
       </Section>
 
       {p.citations.length > 0 && (

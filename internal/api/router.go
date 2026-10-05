@@ -11,13 +11,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/praetorianer777/gotree/internal/media"
 	"github.com/praetorianer777/gotree/internal/store"
 )
 
 // Server holds the dependencies of the HTTP handlers.
 type Server struct {
-	Store   *store.Store
-	Version string
+	Store *store.Store
+	// Files holds uploaded media; MaxUpload is the size limit in bytes.
+	Files     media.Files
+	MaxUpload int64
+	Version   string
 	// Frontend is the built SPA (web/dist); see web.Dist.
 	Frontend fs.FS
 	Log      *slog.Logger
@@ -53,6 +57,7 @@ func (s *Server) Handler() http.Handler {
 			r.Use(requireEditor)
 			s.resourceRoutes(r)
 			s.sourceRoutes(r)
+			s.mediaRoutes(r)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {

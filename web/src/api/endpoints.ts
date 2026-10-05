@@ -1,4 +1,4 @@
-import { del, getJSON, postJSON, putJSON } from './client'
+import { del, getJSON, postJSON, putJSON, uploadFile } from './client'
 import type {
   EventInput,
   Family,
@@ -18,6 +18,9 @@ import type {
   SourceDetail,
   SourceInput,
   TreeGraph,
+  Media,
+  MediaRef,
+  RegionInput,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -58,3 +61,25 @@ export const listRepositories = (q: string, signal?: AbortSignal) =>
   getJSON<Repository[]>(`/repositories?${qs({ q })}`, signal)
 export const createRepository = (name: string) =>
   postJSON<Repository>('/repositories', { name, address: '', url: '', notes: '' })
+
+export type MediaOwner = { entityType: 'person' | 'event' | 'family' | 'source'; entityId: number }
+
+export const listMedia = (owner: MediaOwner | null, signal?: AbortSignal) =>
+  getJSON<MediaRef[]>(`/media${owner ? `?${qs(owner)}` : '?limit=200'}`, signal)
+export const uploadMedia = (file: File, owner: MediaOwner | null) =>
+  uploadFile<Media>(`/media${owner ? `?${qs(owner)}` : ''}`, file)
+export const getMedia = (id: number, signal?: AbortSignal) => getJSON<Media>(`/media/${id}`, signal)
+export const updateMedia = (id: number, input: { title: string; date: string; description: string; transcript: string }) =>
+  putJSON<Media>(`/media/${id}`, input)
+export const deleteMedia = (id: number) => del(`/media/${id}`)
+export const linkMedia = (id: number, owner: MediaOwner) => postJSON<Media>(`/media/${id}/links`, owner)
+export const unlinkMedia = (id: number, owner: MediaOwner) => del(`/media/${id}/links/${owner.entityType}/${owner.entityId}`)
+export const addRegion = (id: number, input: RegionInput) => postJSON<Media>(`/media/${id}/regions`, input)
+export const updateRegion = (regionId: number, input: RegionInput) => putJSON<Media>(`/media/regions/${regionId}`, input)
+export const deleteRegion = (regionId: number) => del(`/media/regions/${regionId}`)
+export const setPortrait = (personId: number, mediaId: number | null, regionId: number | null) =>
+  putJSON<unknown>(`/persons/${personId}/portrait`, { mediaId, regionId })
+
+export const mediaFileUrl = (id: number) => `/api/media/${id}/file`
+export const thumbUrl = (id: number, size: 128 | 256 | 512 | 1024, regionId?: number | null) =>
+  `/api/media/${id}/thumb?size=${size}${regionId ? `&region=${regionId}` : ''}`

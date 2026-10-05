@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // Config holds everything the server needs to start.
@@ -18,6 +19,13 @@ type Config struct {
 	// there is none yet, instead of the setup screen. Ignored afterwards.
 	AdminUser     string
 	AdminPassword string
+	// MaxUploadMB limits the size of one uploaded file.
+	MaxUploadMB int
+}
+
+// MediaDir is where uploaded files are kept inside DataDir.
+func (c Config) MediaDir() string {
+	return filepath.Join(c.DataDir, "media")
 }
 
 // DBPath is the location of the SQLite database inside DataDir.
@@ -33,6 +41,14 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 		ListenAddr:    envOr(getenv, "GOTREE_LISTEN_ADDR", ":8080"),
 		AdminUser:     envOr(getenv, "GOTREE_ADMIN_USER", "admin"),
 		AdminPassword: getenv("GOTREE_ADMIN_PASSWORD"),
+		MaxUploadMB:   100,
+	}
+	if v := getenv("GOTREE_MAX_UPLOAD_MB"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n <= 0 {
+			return Config{}, errors.New("GOTREE_MAX_UPLOAD_MB must be a positive number")
+		}
+		cfg.MaxUploadMB = n
 	}
 
 	fs := flag.NewFlagSet("gotree", flag.ContinueOnError)
