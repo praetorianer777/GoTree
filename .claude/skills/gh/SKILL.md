@@ -43,7 +43,7 @@ gh run view --log-failed             # when CI is red
 
 ## Releases
 
-Cutting releases is the user's job. From an agent session, read only:
+`release.sh` is the user's job. From an agent session, read only:
 `gh release list`, `gh release view v0.1.0`.
 
 ## Pitfalls
