@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Route, Routes } from 'react-router'
+import { AuthGate } from './auth/AuthGate'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
 import { NotFound } from './pages/NotFound'
@@ -8,14 +9,16 @@ import { Placeholder } from './pages/Placeholder'
 export function App() {
   const { t } = useTranslation()
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="people" element={<Placeholder title={t('nav.people')} />} />
-        <Route path="tree" element={<Placeholder title={t('nav.tree')} />} />
-        <Route path="import-export" element={<Placeholder title={t('nav.importExport')} />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+    <AuthGate>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="people" element={<Placeholder title={t('nav.people')} />} />
+          <Route path="tree" element={<Placeholder title={t('nav.tree')} />} />
+          <Route path="import-export" element={<Placeholder title={t('nav.importExport')} />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </AuthGate>
   )
 }

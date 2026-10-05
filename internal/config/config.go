@@ -14,6 +14,10 @@ type Config struct {
 	DataDir string
 	// ListenAddr is the address the HTTP server binds to, e.g. ":8080".
 	ListenAddr string
+	// AdminUser and AdminPassword create the first account on startup when
+	// there is none yet, instead of the setup screen. Ignored afterwards.
+	AdminUser     string
+	AdminPassword string
 }
 
 // DBPath is the location of the SQLite database inside DataDir.
@@ -25,8 +29,10 @@ func (c Config) DBPath() string {
 // variables, which win over the defaults.
 func Load(args []string, getenv func(string) string) (Config, error) {
 	cfg := Config{
-		DataDir:    envOr(getenv, "GOTREE_DATA_DIR", "data"),
-		ListenAddr: envOr(getenv, "GOTREE_LISTEN_ADDR", ":8080"),
+		DataDir:       envOr(getenv, "GOTREE_DATA_DIR", "data"),
+		ListenAddr:    envOr(getenv, "GOTREE_LISTEN_ADDR", ":8080"),
+		AdminUser:     envOr(getenv, "GOTREE_ADMIN_USER", "admin"),
+		AdminPassword: getenv("GOTREE_ADMIN_PASSWORD"),
 	}
 
 	fs := flag.NewFlagSet("gotree", flag.ContinueOnError)

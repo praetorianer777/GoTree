@@ -1,0 +1,238 @@
+package api
+
+import (
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/praetorianer777/gotree/internal/store"
+)
+
+func (s *Server) resourceRoutes(r chi.Router) {
+	r.Route("/persons", func(r chi.Router) {
+		r.Get("/", s.listPersons)
+		r.Post("/", s.createPerson)
+		r.Get("/{id}", s.getPerson)
+		r.Put("/{id}", s.updatePerson)
+		r.Delete("/{id}", s.deletePerson)
+	})
+	r.Route("/families", func(r chi.Router) {
+		r.Post("/", s.createFamily)
+		r.Get("/{id}", s.getFamily)
+		r.Put("/{id}", s.updateFamily)
+		r.Delete("/{id}", s.deleteFamily)
+		r.Put("/{id}/children/{childID}", s.setChild)
+		r.Delete("/{id}/children/{childID}", s.removeChild)
+	})
+	r.Route("/events", func(r chi.Router) {
+		r.Post("/", s.createEvent)
+		r.Get("/{id}", s.getEvent)
+		r.Put("/{id}", s.updateEvent)
+		r.Delete("/{id}", s.deleteEvent)
+	})
+	r.Route("/places", func(r chi.Router) {
+		r.Get("/", s.listPlaces)
+		r.Post("/", s.createPlace)
+		r.Get("/{id}", s.getPlace)
+		r.Put("/{id}", s.updatePlace)
+		r.Delete("/{id}", s.deletePlace)
+	})
+}
+
+// respond writes v, or maps err.
+func (s *Server) respond(w http.ResponseWriter, status int, v any, err error) {
+	if err != nil {
+		writeStoreError(w, s.Log, err)
+		return
+	}
+	writeJSON(w, status, v)
+}
+
+func (s *Server) noContent(w http.ResponseWriter, err error) {
+	if err != nil {
+		writeStoreError(w, s.Log, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) listPersons(w http.ResponseWriter, r *http.Request) {
+	list, err := s.Store.ListPersons(r.Context(), actorFrom(r), r.URL.Query().Get("q"), queryInt(r, "limit", 50), queryInt(r, "offset", 0))
+	s.respond(w, http.StatusOK, list, err)
+}
+
+func (s *Server) createPerson(w http.ResponseWriter, r *http.Request) {
+	var in store.PersonInput
+	if !decode(w, r, &in) {
+		return
+	}
+	p, err := s.Store.CreatePerson(r.Context(), actorFrom(r), in)
+	s.respond(w, http.StatusCreated, p, err)
+}
+
+func (s *Server) getPerson(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	d, err := s.Store.GetPersonDetail(r.Context(), actorFrom(r), id)
+	s.respond(w, http.StatusOK, d, err)
+}
+
+func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var in store.PersonInput
+	if !decode(w, r, &in) {
+		return
+	}
+	p, err := s.Store.UpdatePerson(r.Context(), actorFrom(r), id, in)
+	s.respond(w, http.StatusOK, p, err)
+}
+
+func (s *Server) deletePerson(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		s.noContent(w, s.Store.DeletePerson(r.Context(), actorFrom(r), id))
+	}
+}
+
+func (s *Server) createFamily(w http.ResponseWriter, r *http.Request) {
+	var in store.FamilyInput
+	if !decode(w, r, &in) {
+		return
+	}
+	f, err := s.Store.CreateFamily(r.Context(), actorFrom(r), in)
+	s.respond(w, http.StatusCreated, f, err)
+}
+
+func (s *Server) getFamily(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		f, err := s.Store.GetFamily(r.Context(), actorFrom(r), id)
+		s.respond(w, http.StatusOK, f, err)
+	}
+}
+
+func (s *Server) updateFamily(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var in store.FamilyInput
+	if !decode(w, r, &in) {
+		return
+	}
+	f, err := s.Store.UpdateFamily(r.Context(), actorFrom(r), id, in)
+	s.respond(w, http.StatusOK, f, err)
+}
+
+func (s *Server) deleteFamily(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		s.noContent(w, s.Store.DeleteFamily(r.Context(), actorFrom(r), id))
+	}
+}
+
+func (s *Server) setChild(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	childID, ok := pathID(w, r, "childID")
+	if !ok {
+		return
+	}
+	var in store.ChildInput
+	if !decode(w, r, &in) {
+		return
+	}
+	f, err := s.Store.SetChild(r.Context(), actorFrom(r), id, childID, in)
+	s.respond(w, http.StatusOK, f, err)
+}
+
+func (s *Server) removeChild(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	childID, ok := pathID(w, r, "childID")
+	if !ok {
+		return
+	}
+	f, err := s.Store.RemoveChild(r.Context(), actorFrom(r), id, childID)
+	s.respond(w, http.StatusOK, f, err)
+}
+
+func (s *Server) createEvent(w http.ResponseWriter, r *http.Request) {
+	var in store.EventInput
+	if !decode(w, r, &in) {
+		return
+	}
+	e, err := s.Store.CreateEvent(r.Context(), actorFrom(r), in)
+	s.respond(w, http.StatusCreated, e, err)
+}
+
+func (s *Server) getEvent(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		e, err := s.Store.GetEvent(r.Context(), actorFrom(r), id)
+		s.respond(w, http.StatusOK, e, err)
+	}
+}
+
+func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var in store.EventInput
+	if !decode(w, r, &in) {
+		return
+	}
+	e, err := s.Store.UpdateEvent(r.Context(), actorFrom(r), id, in)
+	s.respond(w, http.StatusOK, e, err)
+}
+
+func (s *Server) deleteEvent(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		s.noContent(w, s.Store.DeleteEvent(r.Context(), actorFrom(r), id))
+	}
+}
+
+func (s *Server) listPlaces(w http.ResponseWriter, r *http.Request) {
+	places, err := s.Store.ListPlaces(r.Context(), actorFrom(r), r.URL.Query().Get("q"), queryInt(r, "limit", 100))
+	s.respond(w, http.StatusOK, places, err)
+}
+
+func (s *Server) createPlace(w http.ResponseWriter, r *http.Request) {
+	var in store.PlaceInput
+	if !decode(w, r, &in) {
+		return
+	}
+	p, err := s.Store.CreatePlace(r.Context(), actorFrom(r), in)
+	s.respond(w, http.StatusCreated, p, err)
+}
+
+func (s *Server) getPlace(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		p, err := s.Store.GetPlace(r.Context(), actorFrom(r), id)
+		s.respond(w, http.StatusOK, p, err)
+	}
+}
+
+func (s *Server) updatePlace(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var in store.PlaceInput
+	if !decode(w, r, &in) {
+		return
+	}
+	p, err := s.Store.UpdatePlace(r.Context(), actorFrom(r), id, in)
+	s.respond(w, http.StatusOK, p, err)
+}
+
+func (s *Server) deletePlace(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		s.noContent(w, s.Store.DeletePlace(r.Context(), actorFrom(r), id))
+	}
+}

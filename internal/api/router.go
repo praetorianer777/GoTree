@@ -4,8 +4,6 @@ package api
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -13,26 +11,49 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/praetorianer777/gotree/internal/store"
 )
 
 // Server holds the dependencies of the HTTP handlers.
 type Server struct {
-	DB      *sql.DB
+	Store   *store.Store
 	Version string
 	// Frontend is the built SPA (web/dist); see web.Dist.
 	Frontend fs.FS
 	Log      *slog.Logger
+
+	throttle *loginThrottle
 }
 
 // Handler builds the complete HTTP handler.
 func (s *Server) Handler() http.Handler {
+	if s.throttle == nil {
+		s.throttle = newLoginThrottle()
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(securityHeaders)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.NoCache)
+		// Refuses state-changing requests from other origins (CSRF), based on
+		// Sec-Fetch-Site and Origin; same-origin requests and non-browser
+		// clients pass.
+		r.Use(http.NewCrossOriginProtection().Handler)
+
 		r.Get("/health", s.health)
+		r.Get("/auth/state", s.authState)
+		r.Post("/auth/setup", s.setup)
+		r.Post("/auth/login", s.login)
+		r.Post("/auth/logout", s.logout)
+
+		r.Group(func(r chi.Router) {
+			r.Use(s.requireSession)
+			r.Use(requireEditor)
+			s.resourceRoutes(r)
+		})
+
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 			writeError(w, http.StatusNotFound, "not found")
 		})
@@ -57,22 +78,12 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 
 	resp := healthResponse{Status: "ok", Version: s.Version, Database: "ok"}
 	status := http.StatusOK
-	if err := s.DB.PingContext(ctx); err != nil {
+	if err := s.Store.DB.PingContext(ctx); err != nil {
 		s.Log.Error("health: database ping failed", "err", err)
 		resp.Status, resp.Database = "degraded", "unreachable"
 		status = http.StatusServiceUnavailable
 	}
 	writeJSON(w, status, resp)
-}
-
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
-}
-
-func writeError(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]string{"error": msg})
 }
 
 func securityHeaders(next http.Handler) http.Handler {

@@ -36,6 +36,14 @@ or download a binary from the releases page and run `./gotree`. Open http://loca
 |---|---|---|---|
 | Data directory (database, media) | `-data-dir` | `GOTREE_DATA_DIR` | `./data` (`/data` in Docker) |
 | Listen address | `-listen` | `GOTREE_LISTEN_ADDR` | `:8080` |
+| First admin account (only used while there is none) | | `GOTREE_ADMIN_USER`, `GOTREE_ADMIN_PASSWORD` | `admin`, unset |
+
+On first start GoTree asks you in the browser to create the admin account and name your tree.
+For unattended installs, set `GOTREE_ADMIN_PASSWORD` instead.
+
+Behind a reverse proxy, terminate TLS there and forward `X-Forwarded-Proto: https` so the session
+cookie is marked secure. Failed logins are throttled per client address; GoTree sees the proxy's
+address, so the limit then applies to all clients together.
 
 Everything lives in the data directory; back it up and you have backed up GoTree.
 
@@ -49,8 +57,9 @@ make build   # frontend + single binary ./gotree
 make test    # ./run-tests.sh — the same gate the pre-push hook and CI use
 ```
 
-Layout: `cmd/gotree` (entry point), `internal/` (config, db + migrations, api), `web/` (React app,
-embedded into the binary via `web/embed.go`).
+Layout: `cmd/gotree` (entry point), `internal/` (`config`, `db` + migrations, `gendate` GEDCOM
+dates, `store` domain logic, `api` HTTP handlers), `web/` (React app, embedded into the binary
+via `web/embed.go`).
 
 ## Releasing
 

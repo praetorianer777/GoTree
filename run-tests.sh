@@ -29,11 +29,15 @@ if [[ -f go.mod ]]; then
     go tool sqlc diff
   fi
 
+  # web/node_modules can ship Go packages of its own (flatted does), and
+  # ./... would vet and test those too.
+  mapfile -t go_pkgs < <(go list ./... | grep -v /node_modules/)
+
   echo "🔍 go vet"
-  go vet ./...
+  go vet "${go_pkgs[@]}"
 
   echo "🧪 Go tests"
-  go test ./...
+  go test "${go_pkgs[@]}"
 fi
 
 if [[ -f web/package.json ]]; then
