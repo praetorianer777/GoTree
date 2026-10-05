@@ -435,3 +435,37 @@ func julianToGregorian(y, m, d int) (int, int, int) {
 	year := 100*b + dd - 4800 + mo/10
 	return year, month, day
 }
+
+// GEDCOM7 renders the date for GEDCOM 7, which spells calendars as
+// keywords ("JULIAN 4 OCT 1582"), writes "BCE" and has neither INT nor
+// dual years. What 7.0 cannot express goes into phrase, to be written as a
+// DATE.PHRASE substructure; value may then be empty.
+func (d Date) GEDCOM7() (value, phrase string) {
+	simple := func(sd *SimpleDate) string {
+		s := strings.Replace(sd.String(), "@#DJULIAN@ ", "JULIAN ", 1)
+		s = strings.Replace(s, " B.C.", " BCE", 1)
+		if sd.DualYear != 0 {
+			s = strings.Replace(s, fmt.Sprintf("/%02d", sd.DualYear%100), "", 1)
+			phrase = sd.String()
+		}
+		return s
+	}
+	switch d.Qualifier {
+	case QualifierPhrase:
+		return "", d.Phrase
+	case QualifierBetween:
+		value = "BET " + simple(d.Start) + " AND " + simple(d.End)
+	case QualifierFromTo:
+		value = "FROM " + simple(d.Start) + " TO " + simple(d.End)
+	case QualifierTo:
+		value = "TO " + simple(d.End)
+	case QualifierInterpreted:
+		value = simple(d.Start)
+		phrase = d.Phrase
+	case QualifierNone:
+		value = simple(d.Start)
+	default:
+		value = string(d.Qualifier) + " " + simple(d.Start)
+	}
+	return value, phrase
+}

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -71,5 +72,27 @@ func TestPragmasApplyToEveryConnection(t *testing.T) {
 		if mode != "wal" {
 			t.Errorf("connection %d: journal_mode = %q, want wal", i, mode)
 		}
+	}
+}
+
+func TestOpenPathWithSpecialCharacters(t *testing.T) {
+	ctx := context.Background()
+	base := t.TempDir()
+	a, err := Open(ctx, filepath.Join(base, "family #1", "tree?.db"))
+	if err == nil {
+		t.Fatal("a missing directory should fail")
+	}
+	_ = a
+	dir := filepath.Join(base, "family #1")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	conn, err := Open(ctx, filepath.Join(dir, "tree?.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn.Close()
+	if _, err := os.Stat(filepath.Join(dir, "tree?.db")); err != nil {
+		t.Errorf("database not created at the exact path: %v", err)
 	}
 }

@@ -385,3 +385,11 @@ export interface ImportReport {
   brokenReferences: string[]
   durationMs: number
 }
+
+export interface VerifyReport {
+  version: string
+  ok: boolean
+  rows: { kind: string; tree: number; roundTrip: number }[]
+  warnings: { line: number; message: string }[]
+  dropped: TagStat[]
+}

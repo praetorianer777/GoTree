@@ -6,6 +6,7 @@ import { importGedcom, listPersons } from '../api/endpoints'
 import { Button } from '../components/Button'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { PageHeading } from '../components/PageHeading'
+import { ExportSection } from '../transfer/ExportSection'
 import { ImportReportView } from '../transfer/ImportReportView'
 
 export function ImportExportPage() {
@@ -13,6 +14,7 @@ export function ImportExportPage() {
   return (
     <div className="max-w-3xl space-y-8">
       <PageHeading title={t('nav.importExport')}>{t('nav.importExport')}</PageHeading>
+      <ExportSection />
       <ImportSection />
     </div>
   )

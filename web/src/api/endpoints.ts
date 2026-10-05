@@ -22,6 +22,7 @@ import type {
   MediaRef,
   RegionInput,
   ImportReport,
+  VerifyReport,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -87,3 +88,9 @@ export const thumbUrl = (id: number, size: 128 | 256 | 512 | 1024, regionId?: nu
 
 export const importGedcom = (file: File, mode: 'empty' | 'replace') =>
   uploadFile<ImportReport>(`/import/gedcom?${qs({ mode })}`, file)
+
+export type ExportVersion = '5.5.1' | '7.0'
+export type Privacy = 'all' | 'exclude-living' | 'name-only'
+export const exportUrl = (version: ExportVersion, privacy: Privacy, format: 'ged' | 'gedzip') =>
+  `/api/export/gedcom?${qs({ version, privacy, format })}`
+export const verifyExport = (version: ExportVersion) => getJSON<VerifyReport>(`/export/verify?${qs({ version })}`)

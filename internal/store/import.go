@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -676,7 +677,7 @@ func (im *importer) person(ctx context.Context, r *gedcom.Node) error {
 	var others []parsedName
 	var primaryNode *gedcom.Node
 	sex := "U"
-	var events, citations []*gedcom.Node
+	var events, citations, assos []*gedcom.Node
 
 	for _, c := range r.Children {
 		switch {
@@ -707,6 +708,8 @@ func (im *importer) person(ctx context.Context, r *gedcom.Node) error {
 			im.mapped("INDI." + c.Tag)
 		case c.Tag == "SOUR":
 			citations = append(citations, c)
+		case c.Tag == "ASSO" && sharedEventRela.MatchString(c.Text("RELA")):
+			assos = append(assos, c)
 		case c.Tag == "FAMC":
 			if _, ok := im.doc.RecordByXref(c.Pointer); !ok && c.Pointer != "VOID" {
 				im.broken(c, "the family")
@@ -754,13 +757,32 @@ func (im *importer) person(ctx context.Context, r *gedcom.Node) error {
 			return err
 		}
 	}
+	eventIDs := map[string]int64{}
 	for i, e := range events {
-		if err := im.event(ctx, "INDI", e, sql.NullInt64{Int64: pid, Valid: true}, sql.NullInt64{}, i); err != nil {
+		id, err := im.event(ctx, "INDI", e, sql.NullInt64{Int64: pid, Valid: true}, sql.NullInt64{}, i)
+		if err != nil {
 			return err
 		}
+		if _, seen := eventIDs[e.Tag]; !seen {
+			eventIDs[e.Tag] = id
+		}
+	}
+	// GoTree writes shared-event participants in 5.5.1 as
+	// "ASSO @I2@ / RELA godparent (BAPM)" on the principal.
+	for _, asso := range assos {
+		m := sharedEventRela.FindStringSubmatch(asso.Text("RELA"))
+		eid, ok := eventIDs[m[2]]
+		if !ok {
+			im.keep("INDI", asso, &kept)
+			continue
+		}
+		im.deferred = append(im.deferred, deferredParticipant{eventID: eid, xref: asso.Pointer, role: m[1], line: asso.Line})
+		im.mapped("INDI.ASSO")
 	}
 	return nil
 }
+
+var sharedEventRela = regexp.MustCompile(`^(head|spouse|child|parent|sibling|relative|witness|godparent|informant|officiant|clergy|friend|neighbor|other) \(([A-Z_][A-Z0-9_]*)\)$`)
 
 var assoRoles = map[string]string{
 	"CHIL": "child", "CLERGY": "clergy", "FATH": "parent", "FRIEND": "friend", "GODP": "godparent", "HUSB": "spouse",
@@ -768,7 +790,7 @@ var assoRoles = map[string]string{
 	"WIFE": "spouse", "WITN": "witness", "OTHER": "other",
 }
 
-func (im *importer) event(ctx context.Context, owner string, e *gedcom.Node, personID, familyID sql.NullInt64, order int) error {
+func (im *importer) event(ctx context.Context, owner string, e *gedcom.Node, personID, familyID sql.NullInt64, order int) (int64, error) {
 	path := owner + "." + e.Tag
 	var kept []keptNode
 	var notes []string
@@ -791,7 +813,7 @@ func (im *importer) event(ctx context.Context, owner string, e *gedcom.Node, per
 		case "PLAC":
 			id, err := im.place(ctx, c, path, &kept)
 			if err != nil {
-				return err
+				return 0, err
 			}
 			placeID = id
 		case "TYPE":
@@ -838,14 +860,14 @@ func (im *importer) event(ctx context.Context, owner string, e *gedcom.Node, per
 	res, err := im.insertEvent.ExecContext(ctx, im.a.TreeID, personID, familyID, typ, label, dateRaw, date, key, keyEnd, qual,
 		placeID, description, joinNotes(notes), order, extraJSON(kept), im.now, im.now, nullID(im.a.UserID), nullID(im.a.UserID))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	eid, _ := res.LastInsertId()
 	im.report.Counts["events"]++
 	im.mapped(path)
 	for _, c := range citations {
 		if err := im.citation(ctx, path, c, "event", eid); err != nil {
-			return err
+			return 0, err
 		}
 	}
 	for _, a := range assos {
@@ -856,7 +878,7 @@ func (im *importer) event(ctx context.Context, owner string, e *gedcom.Node, per
 		im.deferred = append(im.deferred, deferredParticipant{eventID: eid, xref: a.Pointer, role: role, line: a.Line})
 		im.mapped(path + ".ASSO")
 	}
-	return nil
+	return eid, nil
 }
 
 // place turns "Leipzig, Sachsen, Deutschland" into the place hierarchy,
@@ -1043,7 +1065,7 @@ func (im *importer) family(ctx context.Context, r *gedcom.Node) error {
 		}
 	}
 	for i, e := range events {
-		if err := im.event(ctx, "FAM", e, sql.NullInt64{}, sql.NullInt64{Int64: fid, Valid: true}, i); err != nil {
+		if _, err := im.event(ctx, "FAM", e, sql.NullInt64{}, sql.NullInt64{Int64: fid, Valid: true}, i); err != nil {
 			return err
 		}
 	}
