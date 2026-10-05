@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "GoTree",
+    "skipToContent": "Skip to main content",
+    "mainNavigation": "Main navigation"
+  },
+  "nav": {
+    "dashboard": "Home",
+    "people": "People",
+    "tree": "Tree",
+    "importExport": "Import & export"
+  },
+  "dashboard": {
+    "title": "Welcome to GoTree",
+    "intro": "Your family tree lives on this server, in a single file you control.",
+    "serverStatus": "Server status",
+    "checking": "Checking the server…",
+    "online": "Server online · version {{version}}",
+    "offline": "The server cannot be reached."
+  },
+  "placeholder": {
+    "comingSoon": "This page is not built yet."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "back": "Back to the start page"
+  }
+}

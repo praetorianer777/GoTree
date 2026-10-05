@@ -9,5 +9,9 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Single-binary server with embedded web UI, SQLite storage with automatic migrations, a
+  health endpoint and a Docker image; the responsive, accessible app shell installs as a
+  web app (#5)
+
 - Release script and workflow: `release.sh` cuts a tagged release from the commit history, and
   the release workflow publishes binaries and a Docker image for every tag (#1)

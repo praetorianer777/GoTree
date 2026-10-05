@@ -5,7 +5,10 @@ coverage.out
 
 # Frontend
 web/node_modules/
-web/dist/
+# web/dist/.gitkeep stays so go:embed compiles before the first frontend build;
+# web/public/.gitkeep puts it back after every build, which empties dist/
+web/dist/*
+!web/dist/.gitkeep
 
 # Runtime data (SQLite database, uploaded media)
 /data/

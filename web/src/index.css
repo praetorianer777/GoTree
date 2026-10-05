@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-50: #eef8fb;
+  --color-brand-100: #d5eef5;
+  --color-brand-500: #1d7fa3;
+  --color-brand-600: #0f6a8d;
+  --color-brand-700: #0f5c7a;
+  --color-brand-800: #0c4a62;
+  --color-leaf-500: #2a9d8f;
+  --color-leaf-600: #23867a;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
