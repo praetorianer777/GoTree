@@ -46,10 +46,10 @@ if [[ -f web/package.json ]]; then
   (cd web && npm ci --no-audit --no-fund)
 
   echo "🔍 Lint & types"
-  (cd web && npm run lint && npx tsc --noEmit -p tsconfig.app.json)
+  (cd web && npm run lint && npm run typecheck)
 
   echo "🧪 Frontend tests"
-  (cd web && npx vitest run --passWithNoTests)
+  (cd web && npm test)
 
   echo "🏗️  Frontend build"
   (cd web && npm run build)

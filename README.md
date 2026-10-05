@@ -24,10 +24,33 @@ SQLite file — no database server, no cloud account.
 - Frontend: React, TypeScript, Vite, Tailwind CSS, React Flow
 - Deployment: single binary (`go:embed`) or Docker image (`ghcr.io/praetorianer777/gotree`)
 
+## Running
+
+```bash
+docker run -d -p 8080:8080 -v gotree-data:/data ghcr.io/praetorianer777/gotree
+```
+
+or download a binary from the releases page and run `./gotree`. Open http://localhost:8080.
+
+| Setting | Flag | Environment | Default |
+|---|---|---|---|
+| Data directory (database, media) | `-data-dir` | `GOTREE_DATA_DIR` | `./data` (`/data` in Docker) |
+| Listen address | `-listen` | `GOTREE_LISTEN_ADDR` | `:8080` |
+
+Everything lives in the data directory; back it up and you have backed up GoTree.
+
 ## Development
 
-Requires Go and Node.js (LTS). `./run-tests.sh` runs the full suite; it is the same gate the
-pre-push hook and CI use.
+Requires Go and Node.js (LTS).
+
+```bash
+make dev     # API on :8080, Vite on :5173 with hot reload (proxies /api)
+make build   # frontend + single binary ./gotree
+make test    # ./run-tests.sh — the same gate the pre-push hook and CI use
+```
+
+Layout: `cmd/gotree` (entry point), `internal/` (config, db + migrations, api), `web/` (React app,
+embedded into the binary via `web/embed.go`).
 
 ## Releasing
 

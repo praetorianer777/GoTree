@@ -1,0 +1,141 @@
+package api
+
+import (
+	"context"
+	"encoding/json"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
+	"testing"
+	"testing/fstest"
+
+	"github.com/praetorianer777/gotree/internal/db"
+)
+
+func newServer(t *testing.T, frontend fstest.MapFS) *httptest.Server {
+	t.Helper()
+	conn, err := db.Open(context.Background(), filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	s := &Server{
+		DB:       conn,
+		Version:  "1.2.3",
+		Frontend: frontend,
+		Log:      slog.New(slog.NewTextHandler(io.Discard, nil)),
+	}
+	ts := httptest.NewServer(s.Handler())
+	t.Cleanup(ts.Close)
+	return ts
+}
+
+func get(t *testing.T, url string) (*http.Response, string) {
+	t.Helper()
+	resp, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return resp, string(body)
+}
+
+var builtFrontend = fstest.MapFS{
+	"index.html":           {Data: []byte("<!doctype html><title>GoTree</title>")},
+	"assets/index-abc1.js": {Data: []byte("console.log(1)")},
+	"manifest.webmanifest": {Data: []byte("{}")},
+	"icons/icon-192.png":   {Data: []byte("png")},
+}
+
+func TestHealth(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	resp, body := get(t, ts.URL+"/api/health")
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status %d: %s", resp.StatusCode, body)
+	}
+	var got healthResponse
+	if err := json.Unmarshal([]byte(body), &got); err != nil {
+		t.Fatal(err)
+	}
+	want := healthResponse{Status: "ok", Version: "1.2.3", Database: "ok"}
+	if got != want {
+		t.Errorf("got %+v, want %+v", got, want)
+	}
+	if cc := resp.Header.Get("Cache-Control"); !strings.Contains(cc, "no-cache") {
+		t.Errorf("API responses must not be cached, got Cache-Control %q", cc)
+	}
+}
+
+func TestUnknownAPIRouteIsJSON404(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	resp, body := get(t, ts.URL+"/api/nope")
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("status %d, want 404", resp.StatusCode)
+	}
+	if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
+		t.Errorf("Content-Type %q, want application/json", ct)
+	}
+	if !strings.Contains(body, `"error"`) {
+		t.Errorf("body %q has no error field", body)
+	}
+}
+
+func TestSPA(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	tests := []struct {
+		path        string
+		wantStatus  int
+		wantBody    string
+		wantCaching string
+	}{
+		{"/", http.StatusOK, "<title>GoTree</title>", "no-cache"},
+		{"/people/42", http.StatusOK, "<title>GoTree</title>", "no-cache"},
+		{"/assets/index-abc1.js", http.StatusOK, "console.log", "immutable"},
+		{"/manifest.webmanifest", http.StatusOK, "{}", "no-cache"},
+		{"/icons/icon-192.png", http.StatusOK, "png", "no-cache"},
+		{"/assets/missing.js", http.StatusNotFound, "", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			resp, body := get(t, ts.URL+tt.path)
+			if resp.StatusCode != tt.wantStatus {
+				t.Fatalf("status %d, want %d", resp.StatusCode, tt.wantStatus)
+			}
+			if !strings.Contains(body, tt.wantBody) {
+				t.Errorf("body %q does not contain %q", body, tt.wantBody)
+			}
+			if cc := resp.Header.Get("Cache-Control"); !strings.Contains(cc, tt.wantCaching) {
+				t.Errorf("Cache-Control %q does not contain %q", cc, tt.wantCaching)
+			}
+			if resp.Header.Get("X-Content-Type-Options") != "nosniff" {
+				t.Error("security headers missing")
+			}
+		})
+	}
+}
+
+func TestManifestContentType(t *testing.T) {
+	ts := newServer(t, builtFrontend)
+	resp, _ := get(t, ts.URL+"/manifest.webmanifest")
+	if ct := resp.Header.Get("Content-Type"); ct != "application/manifest+json" {
+		t.Errorf("Content-Type %q, want application/manifest+json", ct)
+	}
+}
+
+func TestSPANotBuilt(t *testing.T) {
+	ts := newServer(t, fstest.MapFS{".gitkeep": {}})
+	resp, body := get(t, ts.URL+"/")
+	if resp.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("status %d, want 503", resp.StatusCode)
+	}
+	if !strings.Contains(body, "make build") {
+		t.Errorf("body %q should explain how to build the frontend", body)
+	}
+}

@@ -1,0 +1,8 @@
+.git
+.github
+.claude
+data
+gotree
+web/node_modules
+web/dist
+assets
