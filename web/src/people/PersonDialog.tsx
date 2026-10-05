@@ -7,6 +7,7 @@ import { Dialog } from '../components/Dialog'
 import { Form } from '../components/Form'
 import { formErrors } from '../lib/errors'
 import { emptyPerson } from '../lib/people'
+import { CitationEditor, type PendingCitation } from '../sources/CitationEditor'
 import { PersonFields } from './PersonFields'
 
 interface Props {
@@ -27,6 +28,7 @@ const toInput = (p: Person): PersonInput => ({
   isLiving: p.isLiving,
   notes: p.notes,
   alternateNames: p.alternateNames.map((n) => ({
+    id: n.id,
     type: n.type,
     givenNames: n.givenNames,
     surname: n.surname,
@@ -52,8 +54,17 @@ function PersonDialogForm({ person, onClose, onSaved }: Omit<Props, 'open'>) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [value, setValue] = useState<PersonInput>(person ? toInput(person) : emptyPerson())
+  const [addCitations, setAddCitations] = useState<PendingCitation[]>([])
+  const [removeCitations, setRemoveCitations] = useState<number[]>([])
   const save = useMutation({
-    mutationFn: () => (person ? updatePerson(person.id, value) : createPerson(value)),
+    mutationFn: () => {
+      const input: PersonInput = {
+        ...value,
+        addCitations: addCitations.map(({ sourceId, page, quality, text }) => ({ sourceId, page, quality, text })),
+        removeCitations,
+      }
+      return person ? updatePerson(person.id, input) : createPerson(input)
+    },
     onSuccess: (p) => {
       void queryClient.invalidateQueries({ queryKey: ['persons'] })
       void queryClient.invalidateQueries({ queryKey: ['person'] })
@@ -66,6 +77,14 @@ function PersonDialogForm({ person, onClose, onSaved }: Omit<Props, 'open'>) {
   return (
     <Form onSubmit={() => save.mutate()} onCancel={onClose} submitLabel={t('common.save')} busy={save.isPending} error={errors.form}>
       <PersonFields value={value} onChange={setValue} errors={errors.fields} full />
+      <CitationEditor
+        existing={person?.citations ?? []}
+        removed={removeCitations}
+        onRemovedChange={setRemoveCitations}
+        added={addCitations}
+        onAddedChange={setAddCitations}
+        error={errors.fields['citations.sourceId'] ?? errors.fields.removeCitations}
+      />
     </Form>
   )
 }

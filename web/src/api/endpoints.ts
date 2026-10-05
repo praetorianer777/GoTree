@@ -13,6 +13,10 @@ import type {
   PlaceInput,
   RelativeInput,
   RelativeResult,
+  Repository,
+  Source,
+  SourceDetail,
+  SourceInput,
   TreeGraph,
 } from './types'
 
@@ -43,3 +47,14 @@ export const parseDate = (q: string, signal?: AbortSignal) => getJSON<ParsedDate
 
 export const getTree = (id: number, opts: { up: number; down: number; siblings: boolean }, signal?: AbortSignal) =>
   getJSON<TreeGraph>(`/tree/${id}?${qs({ up: opts.up, down: opts.down, siblings: opts.siblings ? 1 : 0 })}`, signal)
+
+export const listSources = (q: string, signal?: AbortSignal) => getJSON<Source[]>(`/sources?${qs({ q, limit: 100 })}`, signal)
+export const getSource = (id: number, signal?: AbortSignal) => getJSON<SourceDetail>(`/sources/${id}`, signal)
+export const createSource = (input: SourceInput) => postJSON<Source>('/sources', input)
+export const updateSource = (id: number, input: SourceInput) => putJSON<Source>(`/sources/${id}`, input)
+export const deleteSource = (id: number) => del(`/sources/${id}`)
+
+export const listRepositories = (q: string, signal?: AbortSignal) =>
+  getJSON<Repository[]>(`/repositories?${qs({ q })}`, signal)
+export const createRepository = (name: string) =>
+  postJSON<Repository>('/repositories', { name, address: '', url: '', notes: '' })

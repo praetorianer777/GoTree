@@ -7,6 +7,8 @@ import { NotFound } from './pages/NotFound'
 import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
 import { Placeholder } from './pages/Placeholder'
+import { SourcePage } from './pages/SourcePage'
+import { SourcesPage } from './pages/SourcesPage'
 import { TreePage } from './pages/TreePage'
 
 export function App() {
@@ -19,6 +21,8 @@ export function App() {
           <Route path="people" element={<PeoplePage />} />
           <Route path="people/:id" element={<PersonPage />} />
           <Route path="tree" element={<TreePage />} />
+          <Route path="sources" element={<SourcesPage />} />
+          <Route path="sources/:id" element={<SourcePage />} />
           <Route path="import-export" element={<Placeholder title={t('nav.importExport')} />} />
           <Route path="*" element={<NotFound />} />
         </Route>

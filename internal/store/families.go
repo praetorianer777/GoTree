@@ -20,14 +20,15 @@ type ChildLink struct {
 type Family struct {
 	ID int64 `json:"id"`
 	// A nil partner is unknown.
-	Partner1  *PersonRef  `json:"partner1"`
-	Partner2  *PersonRef  `json:"partner2"`
-	UnionType string      `json:"unionType"`
-	Notes     string      `json:"notes"`
-	Children  []ChildLink `json:"children"`
-	Events    []Event     `json:"events"`
-	CreatedAt string      `json:"createdAt"`
-	UpdatedAt string      `json:"updatedAt"`
+	Partner1  *PersonRef    `json:"partner1"`
+	Partner2  *PersonRef    `json:"partner2"`
+	UnionType string        `json:"unionType"`
+	Notes     string        `json:"notes"`
+	Children  []ChildLink   `json:"children"`
+	Events    []Event       `json:"events"`
+	Citations []CitationRef `json:"citations"`
+	CreatedAt string        `json:"createdAt"`
+	UpdatedAt string        `json:"updatedAt"`
 }
 
 // FamilyInput is the editable part of a Family.
@@ -420,6 +421,13 @@ func (s *Store) loadFamilies(ctx context.Context, q queryer, a Actor, where stri
 	for _, e := range events {
 		f := &fams[index[*e.FamilyID]]
 		f.Events = append(f.Events, e)
+	}
+	cits, err := citationRefs(ctx, q, a, "family", familyIDs)
+	if err != nil {
+		return nil, err
+	}
+	for i := range fams {
+		fams[i].Citations = orEmpty(cits[fams[i].ID])
 	}
 	return fams, nil
 }

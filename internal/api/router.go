@@ -52,6 +52,7 @@ func (s *Server) Handler() http.Handler {
 			r.Use(s.requireSession)
 			r.Use(requireEditor)
 			s.resourceRoutes(r)
+			s.sourceRoutes(r)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {

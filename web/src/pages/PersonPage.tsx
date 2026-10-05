@@ -18,6 +18,7 @@ import { RelativeDialog } from '../people/RelativeDialog'
 import { Timeline } from '../people/Timeline'
 import { timelineItems, type TimelineItem } from '../people/timelineItems'
 import { NotFound } from './NotFound'
+import { CitationText } from '../sources/CitationEditor'
 
 type Open =
   | { kind: 'edit' }
@@ -140,7 +141,7 @@ export function PersonPage() {
           const self = f.children.find((c) => c.person.id === p.id)
           const siblings = f.children.filter((c) => c.person.id !== p.id)
           return (
-            <FamilyCard key={f.id} onEdit={() => setOpen({ kind: 'family', family: f })}>
+            <FamilyCard key={f.id} family={f} onEdit={() => setOpen({ kind: 'family', family: f })}>
               <h3 className="font-semibold">{t('person.parents')}</h3>
               <ul className="mt-1 space-y-1">
                 <li>
@@ -188,7 +189,7 @@ export function PersonPage() {
         {p.partnerFamilies.map((f) => {
           const side = f.partner1?.id === p.id ? 'relationPartner1' : 'relationPartner2'
           return (
-            <FamilyCard key={f.id} onEdit={() => setOpen({ kind: 'family', family: f })}>
+            <FamilyCard key={f.id} family={f} onEdit={() => setOpen({ kind: 'family', family: f })}>
               <h3 className="font-semibold">
                 <PersonLink person={otherPartner(f, p.id)} />
                 <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-400">{t(`unionType.${f.unionType}`)}</span>
@@ -209,6 +210,18 @@ export function PersonPage() {
           )
         })}
       </Section>
+
+      {p.citations.length > 0 && (
+        <Section title={t('citation.sourcesForPerson')}>
+          <ul className="space-y-1">
+            {p.citations.map((c) => (
+              <li key={c.citationId}>
+                <CitationText citation={c} />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {p.notes && (
         <Section title={t('person.notes')}>
@@ -251,11 +264,23 @@ function Section({ title, actions, children }: { title: string; actions?: ReactN
   )
 }
 
-function FamilyCard({ children, onEdit }: { children: ReactNode; onEdit: () => void }) {
+function FamilyCard({ children, onEdit, family }: { children: ReactNode; onEdit: () => void; family: Family }) {
   const { t } = useTranslation()
   return (
     <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0">
+        {children}
+        {family.citations.length > 0 && (
+          <ul className="mt-2 text-sm" aria-label={t('citation.sourcesForFamily')}>
+            {family.citations.map((c) => (
+              <li key={c.citationId}>
+                <span aria-hidden="true">📄 </span>
+                <CitationText citation={c} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <Button variant="ghost" onClick={onEdit}>
         {t('family.editShort')}
       </Button>

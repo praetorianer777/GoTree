@@ -30,6 +30,9 @@ type RelativeInput struct {
 	// ChildRelation is how the child relates to the parent being linked:
 	// birth (default), adopted, foster, …
 	ChildRelation string `json:"childRelation"`
+	// Citation is the source for the relationship; it is attached to the
+	// connecting family.
+	Citation *NewCitation `json:"citation,omitempty"`
 }
 
 // RelativeResult is the relative and the family that connects them.
@@ -116,6 +119,11 @@ func (s *Store) AddRelative(ctx context.Context, a Actor, personID int64, in Rel
 		}
 		if err != nil {
 			return err
+		}
+		if in.Citation != nil {
+			if err := s.addCitations(ctx, tx, a, "family", fam.ID, []NewCitation{*in.Citation}); err != nil {
+				return err
+			}
 		}
 
 		// Re-read so the result reflects the new links (e.g. living state
