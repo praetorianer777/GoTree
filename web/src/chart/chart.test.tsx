@@ -1,9 +1,17 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { PersonRef, TreeGraph } from '../api/types'
 import { axeViolations } from '../test/axe'
 import { mockApi, renderApp } from '../test/render'
+import { elbow } from './geometry'
 import { fitChart, MARGIN_MM, papers, TITLE_MM } from './paper'
+
+describe('connector paths', () => {
+  it('rounds the corners of an elbow and keeps straight lines straight', () => {
+    expect(elbow(0, 0, 100, 40)).toBe('M 0 0 V 10 Q 0 20 10 20 H 90 Q 100 20 100 30 V 40')
+    expect(elbow(50, 0, 50, 40)).toBe('M 50 0 V 20 H 50 V 40')
+  })
+})
 
 describe('fitting a chart to paper', () => {
   it('picks the orientation that prints larger and centres the chart', () => {
@@ -52,7 +60,8 @@ describe('chart page', () => {
     })
     const { container } = renderApp('/chart?root=1')
     const chart = await screen.findByRole('img', { name: 'Ancestors of Paul Weber: chart of 3 people' })
-    expect(chart).toHaveTextContent('♂ Paul Weber')
+    expect(within(chart).getByText('♂ Paul')).toBeInTheDocument()
+    expect(within(chart).getAllByText('Weber')).not.toHaveLength(0)
     expect(chart).toHaveTextContent('* 1890')
     expect(screen.getByText(/3 people on A3/)).toBeInTheDocument()
 

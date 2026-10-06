@@ -3,20 +3,22 @@ import { useTranslation } from 'react-i18next'
 import { fullName, lifespan } from '../lib/people'
 import type { LayoutNode, TreeLayout } from '../tree/layout'
 import type { TreeIndex } from '../tree/model'
-import { bounds, photoUrl } from './geometry'
-import type { Fit } from './paper'
+import { bounds, elbow, photoUrl } from './geometry'
+import { MARGIN_MM, TITLE_MM, type Fit } from './paper'
+import { chartThemes, type ChartThemeName } from './themes'
 
 interface Props {
   layout: TreeLayout
   index: TreeIndex
   fit: Fit
   title: string
+  /** A smaller line under the title. */
+  subtitle?: string
+  theme?: ChartThemeName
   photos: boolean
   /** Replaces photo URLs, e.g. with data URIs for a standalone file. */
   photoSrc?: Record<string, string>
 }
-
-
 
 /** Shortens text to roughly fit a width, since SVG text does not wrap. */
 function fitText(text: string, width: number, size: number) {
@@ -24,14 +26,13 @@ function fitText(text: string, width: number, size: number) {
   return text.length > max ? `${text.slice(0, Math.max(1, max - 1))}…` : text
 }
 
-const sexColor: Record<string, string> = { F: '#e11d48', M: '#0284c7' }
-
 /**
  * The chart as SVG in millimetres on the given paper. Always light, since
- * it is meant for paper; colours are not the only cue (♂/♀ marks sex).
+ * it is meant for paper; colours are not the only cue (♂/♀ marks sex, a
+ * thicker frame the root person).
  */
 export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
-  { layout, index, fit, title, photos, photoSrc },
+  { layout, index, fit, title, subtitle, theme = 'classic', photos, photoSrc },
   ref,
 ) {
   const { t } = useTranslation()
@@ -39,6 +40,8 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
   const byId = new Map(layout.nodes.map((n) => [n.id, n]))
   const center = (n: LayoutNode) => ({ x: n.x + n.w / 2, y: n.y + n.h / 2 })
   const people = layout.nodes.filter((n) => n.kind === 'person').length
+  const th = chartThemes[theme]
+  const cx = fit.paperW / 2
 
   return (
     <svg
@@ -49,35 +52,75 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
       viewBox={`0 0 ${fit.paperW} ${fit.paperH}`}
       role="img"
       aria-label={t('chart.imageLabel', { title, count: people })}
-      fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+      fontFamily={th.font}
       className="h-auto w-full bg-white"
     >
       <title>{title}</title>
-      <rect width={fit.paperW} height={fit.paperH} fill="#ffffff" />
+      <rect width={fit.paperW} height={fit.paperH} fill={th.paper} />
+      {th.frame && (
+        <g fill="none" stroke={th.line}>
+          <rect x={4} y={4} width={fit.paperW - 8} height={fit.paperH - 8} strokeWidth={0.6} />
+          <rect x={5.5} y={5.5} width={fit.paperW - 11} height={fit.paperH - 11} strokeWidth={0.25} />
+        </g>
+      )}
       {title && (
-        <text x={fit.paperW / 2} y={10 + 9} textAnchor="middle" fontSize={9} fontWeight={600} fill="#0f172a">
-          {title}
-        </text>
+        <g>
+          {th.band && <rect width={fit.paperW} height={MARGIN_MM + TITLE_MM - 4} fill={th.line} />}
+          <text
+            x={cx}
+            y={MARGIN_MM + 8}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight={600}
+            fontFamily={th.titleFont}
+            letterSpacing={th.frame ? 0.3 : 0}
+            fill={th.band ? '#ffffff' : th.ink}
+          >
+            {title}
+          </text>
+          {subtitle && (
+            <text
+              x={cx}
+              y={MARGIN_MM + 14.5}
+              textAnchor="middle"
+              fontSize={3.6}
+              fill={th.band ? '#ffffff' : th.muted}
+            >
+              {subtitle}
+            </text>
+          )}
+          {!th.band && (
+            <g stroke={th.line} strokeWidth={0.3}>
+              <line x1={cx - 50} y1={MARGIN_MM + 17.5} x2={cx - 3} y2={MARGIN_MM + 17.5} />
+              <line x1={cx + 3} y1={MARGIN_MM + 17.5} x2={cx + 50} y2={MARGIN_MM + 17.5} />
+              <rect
+                x={cx - 1.1}
+                y={MARGIN_MM + 16.4}
+                width={2.2}
+                height={2.2}
+                fill={th.line}
+                transform={`rotate(45 ${cx} ${MARGIN_MM + 17.5})`}
+              />
+            </g>
+          )}
+        </g>
       )}
       <g transform={`translate(${fit.x} ${fit.y}) scale(${fit.scale}) translate(${-b.minX} ${-b.minY})`}>
-        <g fill="none" stroke="#64748b" strokeWidth={2}>
+        <g fill="none" stroke={th.line} strokeWidth={2} strokeLinecap="round">
           {layout.edges.map((e) => {
             const s = byId.get(e.source)
             const d = byId.get(e.target)
             if (!s || !d) return null
             const [top, bottom] = center(s).y <= center(d).y ? [s, d] : [d, s]
-            const x1 = center(top).x
-            const y1 = top.y + top.h
-            const x2 = center(bottom).x
-            const y2 = bottom.y
-            const mid = (y1 + y2) / 2
-            return <path key={e.id} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} />
+            return <path key={e.id} d={elbow(center(top).x, top.y + top.h, center(bottom).x, bottom.y)} />
           })}
         </g>
         {layout.nodes.map((n) => {
           if (n.kind === 'junction') {
             const c = center(n)
-            return <circle key={n.id} cx={c.x} cy={c.y} r={n.w / 2} fill="#64748b" />
+            return (
+              <circle key={n.id} cx={c.x} cy={c.y} r={n.w / 2 - 1} fill={th.paper} stroke={th.line} strokeWidth={3} />
+            )
           }
           if (n.kind === 'unknown') {
             return (
@@ -87,10 +130,10 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
                   y={n.y}
                   width={n.w}
                   height={n.h}
-                  rx={10}
-                  fill="#ffffff"
-                  stroke="#94a3b8"
-                  strokeWidth={2}
+                  rx={12}
+                  fill={th.paper}
+                  stroke={th.line}
+                  strokeWidth={1.5}
                   strokeDasharray="6 4"
                 />
                 <text
@@ -99,7 +142,7 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
                   textAnchor="middle"
                   fontSize={12}
                   fontStyle="italic"
-                  fill="#475569"
+                  fill={th.muted}
                 >
                   {t('person.unknownParent')}
                 </text>
@@ -117,13 +160,13 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
                   y={n.y}
                   width={n.w}
                   height={n.h}
-                  rx={10}
-                  fill="#ffffff"
-                  stroke="#1d7fa3"
-                  strokeWidth={2}
+                  rx={12}
+                  fill={th.card}
+                  stroke={th.root}
+                  strokeWidth={1.5}
                   strokeDasharray="6 4"
                 />
-                <text x={n.x + 8} y={n.y + n.h / 2 + 4} fontSize={11} fill="#334155">
+                <text x={n.x + 8} y={n.y + n.h / 2 + 4} fontSize={11} fill={th.muted}>
                   {fitText(`↺ ${t('tree.repeat', { name })}`, n.w - 16, 11)}
                 </text>
               </g>
@@ -132,21 +175,34 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
           const src = photos ? photoUrl(p) : null
           const shown = src ? (photoSrc?.[src] ?? src) : null
           const textX = n.x + 16 + 40 + 8
+          const textW = n.x + n.w - 6 - textX
           const clip = `wc-clip-${n.id}`
           const mark = p.sex === 'M' ? '♂ ' : p.sex === 'F' ? '♀ ' : ''
           return (
             <g key={n.id}>
+              <clipPath id={`${clip}-card`}>
+                <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={12} />
+              </clipPath>
               <rect
                 x={n.x}
                 y={n.y}
                 width={n.w}
                 height={n.h}
-                rx={10}
-                fill="#ffffff"
-                stroke={n.root ? '#0f5c7a' : '#cbd5e1'}
-                strokeWidth={2}
+                rx={12}
+                fill={n.root ? th.rootFill : th.card}
+                stroke={n.root ? th.root : th.cardStroke}
+                strokeWidth={n.root ? 3 : 1.5}
               />
-              {sexColor[p.sex] && <rect x={n.x} y={n.y} width={6} height={n.h} rx={3} fill={sexColor[p.sex]} />}
+              {th.sex[p.sex] && (
+                <rect
+                  x={n.x}
+                  y={n.y}
+                  width={6}
+                  height={n.h}
+                  fill={th.sex[p.sex]}
+                  clipPath={`url(#${clip}-card)`}
+                />
+              )}
               <clipPath id={clip}>
                 <circle cx={n.x + 16 + 20} cy={n.y + n.h / 2} r={20} />
               </clipPath>
@@ -162,24 +218,27 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
                 />
               ) : (
                 <>
-                  <circle cx={n.x + 16 + 20} cy={n.y + n.h / 2} r={20} fill="#e2e8f0" />
+                  <circle cx={n.x + 16 + 20} cy={n.y + n.h / 2} r={20} fill={th.avatar} />
                   <text
                     x={n.x + 16 + 20}
                     y={n.y + n.h / 2 + 5}
                     textAnchor="middle"
                     fontSize={13}
                     fontWeight={600}
-                    fill="#334155"
+                    fill={th.avatarInk}
                   >
                     {[p.givenNames, p.surname].map((x) => x.trim()[0] ?? '').join('') || '?'}
                   </text>
                 </>
               )}
-              <text x={textX} y={n.y + n.h / 2 + (lifespan(p) ? -4 : 5)} fontSize={13} fontWeight={600} fill="#0f172a">
-                {fitText(mark + name, n.x + n.w - 6 - textX, 13)}
+              <text x={textX} y={n.y + 20} fontSize={11} fill={th.muted}>
+                {fitText(mark + (p.givenNames.trim() || (p.surname.trim() ? '' : name)), textW, 11)}
               </text>
-              <text x={textX} y={n.y + n.h / 2 + 14} fontSize={11} fill="#475569">
-                {fitText(lifespan(p), n.x + n.w - 6 - textX, 11)}
+              <text x={textX} y={n.y + 36} fontSize={13} fontWeight={700} fill={th.ink}>
+                {fitText(p.surname.trim(), textW, 13)}
+              </text>
+              <text x={textX} y={n.y + 52} fontSize={10.5} fill={th.muted}>
+                {fitText(lifespan(p), textW, 10.5)}
               </text>
             </g>
           )

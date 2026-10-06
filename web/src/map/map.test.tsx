@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { MapData, PersonRef } from '../api/types'
 import { axeViolations } from '../test/axe'
 import { mockApi, renderApp } from '../test/render'
-import { positionsAt, yearRange } from './positions'
+import { positionsAt, trailsUntil, yearRange } from './positions'
 
 // jsdom has no layout for Leaflet; the table carries the same content.
 vi.mock('./MapView', () => ({ default: () => <div data-testid="map" /> }))
@@ -41,6 +41,13 @@ describe('map positions', () => {
     expect([...positionsAt(data, 1921)]).toEqual([[2, [8]]])
     // Without a death, a person leaves the map a century after their first event.
     expect(positionsAt(data, 1986).size).toBe(0)
+  })
+
+  it('draws the moves made so far by the people on the map', () => {
+    expect(trailsUntil(data, 1879)).toEqual([])
+    expect(trailsUntil(data, 1890)).toEqual([{ from: 1, to: 2, count: 1, last: 1880 }])
+    // Hans died in 1920, so his move is no longer drawn.
+    expect(trailsUntil(data, 1921)).toEqual([])
   })
 })
 

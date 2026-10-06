@@ -14,7 +14,7 @@ export type Orientation = 'auto' | 'portrait' | 'landscape'
 
 export const MARGIN_MM = 10
 /** Room for the title above the chart. */
-export const TITLE_MM = 18
+export const TITLE_MM = 24
 /** Layout units are CSS pixels: 96 per inch. */
 export const MM_PER_PX = 25.4 / 96
 /** The card text size in layout units (see the chart's font sizes). */

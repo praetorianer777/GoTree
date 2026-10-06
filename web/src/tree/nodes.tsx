@@ -35,11 +35,13 @@ function Handles() {
 }
 
 const sexMark: Record<string, string> = { M: '♂', F: '♀', X: '⚧', U: '' }
+const accent: Record<string, string> = { M: 'bg-sky-600', F: 'bg-rose-500', X: 'bg-violet-500' }
 
 export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
   const { t } = useTranslation()
   const p = data.person
-  const name = fullName(p) ?? t('person.unknown')
+  const given = p.givenNames.trim()
+  const surname = p.surname.trim()
   const years = lifespan(p)
   return (
     <>
@@ -55,33 +57,37 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
         onKeyDown={(e) => data.onKey(p.id, e)}
         style={interactive}
         className={[
-          'nodrag flex h-16 w-[180px] items-center gap-2 rounded-xl border-2 bg-white px-2 text-left shadow-sm dark:bg-slate-900',
-          data.selected
-            ? 'border-brand-700 ring-2 ring-brand-500 dark:border-brand-100'
-            : data.root
-              ? 'border-brand-700 dark:border-brand-100'
-              : 'border-slate-300 dark:border-slate-600',
-          p.sex === 'F' ? 'border-l-8 border-l-rose-500' : p.sex === 'M' ? 'border-l-8 border-l-sky-600' : '',
+          'nodrag relative flex h-16 w-[180px] items-center gap-2 overflow-hidden rounded-2xl pr-2 pl-3.5 text-left shadow-md shadow-slate-900/10 transition-[box-shadow,translate] duration-150 hover:-translate-y-px hover:shadow-lg dark:shadow-black/40',
+          data.root
+            ? 'border-2 border-brand-700 bg-linear-to-br from-brand-50 to-white dark:border-brand-100 dark:from-brand-800 dark:to-slate-900'
+            : 'border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-900',
+          data.selected ? 'ring-4 ring-brand-500/60' : '',
         ].join(' ')}
       >
-        <Avatar person={p} size={40} />
-        <span className="flex min-w-0 flex-col">
-        <span className="flex items-center gap-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-          {sexMark[p.sex] && (
-            <span aria-hidden="true" className="text-slate-600 dark:text-slate-300">
-              {sexMark[p.sex]}
-            </span>
+        {accent[p.sex] && <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-1.5 ${accent[p.sex]}`} />}
+        <span className="rounded-full ring-2 ring-white dark:ring-slate-800">
+          <Avatar person={p} size={40} />
+        </span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="truncate text-[13px] text-slate-800 dark:text-slate-200">
+            {sexMark[p.sex] && (
+              <span aria-hidden="true" className="mr-1 text-slate-600 dark:text-slate-300">
+                {sexMark[p.sex]}
+              </span>
+            )}
+            {given || (!surname && t('person.unknown'))}
+          </span>{' '}
+          {surname && (
+            <span className="truncate text-sm font-bold tracking-wide text-slate-900 dark:text-white">{surname}</span>
           )}
-          <span className="truncate">{name}</span>
-        </span>
-        <span className="truncate text-xs text-slate-600 dark:text-slate-300">
-          {years}
-          <span className="sr-only">
-            {', '}
-            {t(`sex.${p.sex}`)}
-            {data.root ? `, ${t('tree.rootPerson')}` : ''}
+          <span className="truncate text-xs text-slate-600 tabular-nums dark:text-slate-300">
+            {years}
+            <span className="sr-only">
+              {', '}
+              {t(`sex.${p.sex}`)}
+              {data.root ? `, ${t('tree.rootPerson')}` : ''}
+            </span>
           </span>
-        </span>
         </span>
       </button>
     </>
@@ -92,7 +98,10 @@ export function JunctionNode() {
   return (
     <>
       <Handles />
-      <div aria-hidden="true" className="size-3 rounded-full bg-slate-500 dark:bg-slate-400" />
+      <div
+        aria-hidden="true"
+        className="size-3 rounded-full border-[3px] border-slate-500 bg-white dark:border-slate-400 dark:bg-slate-950"
+      />
     </>
   )
 }
@@ -102,7 +111,7 @@ export function UnknownNode() {
   return (
     <>
       <Handles />
-      <div className="flex h-12 w-[180px] items-center justify-center rounded-xl border-2 border-dashed border-slate-400 text-sm italic text-slate-600 dark:border-slate-600 dark:text-slate-300">
+      <div className="flex h-12 w-[180px] items-center justify-center rounded-2xl border-2 border-dashed border-slate-400 bg-slate-50/80 text-sm italic text-slate-600 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-300">
         {t('person.unknownParent')}
       </div>
     </>
@@ -120,7 +129,7 @@ export function RepeatNode({ data }: NodeProps<Node<RepeatNodeData>>) {
         tabIndex={-1}
         onClick={() => data.onJump(data.person.id)}
         style={interactive}
-        className="nodrag flex h-12 w-[132px] items-center rounded-xl border-2 border-dashed border-brand-500 bg-white px-2 text-left text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        className="nodrag flex h-12 w-[132px] items-center rounded-2xl border-2 border-dashed border-brand-500 bg-brand-50 px-2 shadow-sm text-left text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200"
       >
         <span className="line-clamp-2">
           <span aria-hidden="true">↺ </span>

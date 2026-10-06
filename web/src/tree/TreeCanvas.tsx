@@ -11,6 +11,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDark } from '../lib/theme'
 import type { LayoutNode, TreeLayout } from './layout'
 import type { TreeIndex } from './model'
 import { nodeTypes } from './nodeTypes'
@@ -74,6 +75,7 @@ function neighbour(nodes: LayoutNode[], from: LayoutNode, key: string): LayoutNo
 function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
   const { t } = useTranslation()
   const flow = useReactFlow()
+  const dark = useDark()
   const helpId = useId()
   const rootId = index.rootId
   const [focusId, setFocusId] = useState<number>(rootId)
@@ -136,8 +138,15 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
     [layout, index, selectedId, focusId, rootId, onSelect, onCenter],
   )
   const edges: Edge[] = useMemo(
-    () => layout.edges.map((e) => ({ ...e, type: 'smoothstep', focusable: false, style: { strokeWidth: 2 } })),
-    [layout],
+    () =>
+      layout.edges.map((e) => ({
+        ...e,
+        type: 'smoothstep',
+        pathOptions: { borderRadius: 14 },
+        focusable: false,
+        style: { strokeWidth: 2, stroke: dark ? '#94a3b8' : '#64748b' },
+      })),
+    [layout, dark],
   )
 
   // Re-frame the chart whenever a different tree is shown.
@@ -164,12 +173,21 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
         maxZoom={2}
         fitView
         onlyRenderVisibleElements={layout.nodes.length > 300}
-        colorMode="system"
+        colorMode={dark ? 'dark' : 'light'}
+        style={{ background: dark ? '#020617' : '#f8fafc' }}
         disableKeyboardA11y
       >
-        <Background gap={24} />
+        <Background gap={20} size={1.5} color={dark ? '#334155' : '#cbd5e1'} />
         <Controls showInteractive={false} position="bottom-left" />
-        <MiniMap className="!hidden md:!block" pannable zoomable ariaLabel={t('tree.minimap')} />
+        <MiniMap
+          className="!hidden md:!block"
+          pannable
+          zoomable
+          ariaLabel={t('tree.minimap')}
+          nodeBorderRadius={8}
+          nodeColor={(n) => (n.type === 'person' ? (dark ? '#475569' : '#cbd5e1') : 'transparent')}
+          maskColor={dark ? 'rgb(2 6 23 / 0.6)' : 'rgb(241 245 249 / 0.6)'}
+        />
       </ReactFlow>
     </div>
   )

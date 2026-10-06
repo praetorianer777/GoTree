@@ -9,24 +9,47 @@ import { PageHeading } from '../components/PageHeading'
 function Bar({
   value,
   max,
+  range,
   children,
   tone = 'brand',
 }: {
   value: number
   max: number
+  /** A lighter band from the smallest to the largest value behind the bar. */
+  range?: [number, number]
   children: ReactNode
   tone?: 'brand' | 'rose' | 'slate'
 }) {
-  const color = { brand: 'bg-brand-600', rose: 'bg-rose-600', slate: 'bg-slate-500' }[tone]
+  const color = {
+    brand: 'from-brand-500 to-brand-700 dark:from-brand-500 dark:to-brand-100',
+    rose: 'from-rose-400 to-rose-600 dark:from-rose-500 dark:to-rose-300',
+    slate: 'from-slate-400 to-slate-600 dark:from-slate-500 dark:to-slate-300',
+  }[tone]
+  const pct = (v: number) => `${max > 0 ? (v / max) * 100 : 0}%`
   return (
-    <div className="flex items-center gap-2">
-      <span aria-hidden="true" className="block h-3 min-w-0 flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
-        <span
-          className={`block h-3 rounded-full ${color}`}
-          style={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }}
-        />
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden="true"
+        className="relative block h-3.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+      >
+        {range && (
+          <span
+            className="absolute inset-y-0 bg-brand-100 dark:bg-brand-800"
+            style={{ left: pct(range[0]), width: `calc(${pct(range[1])} - ${pct(range[0])})` }}
+          />
+        )}
+        <span className={`relative block h-full rounded-full bg-linear-to-r ${color}`} style={{ width: pct(value) }} />
       </span>
       <span className="w-20 shrink-0 text-right tabular-nums">{children}</span>
+    </div>
+  )
+}
+
+function Tile({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <dt className="text-sm text-slate-600 dark:text-slate-400">{label}</dt>
+      <dd className="mt-1 text-3xl font-bold text-brand-700 tabular-nums dark:text-brand-100">{value}</dd>
     </div>
   )
 }
@@ -34,7 +57,10 @@ function Bar({
 function Figure({ title, caption, children }: { title: string; caption: string; children: ReactNode }) {
   const id = useId()
   return (
-    <section aria-labelledby={id} className="space-y-3">
+    <section
+      aria-labelledby={id}
+      className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+    >
       <h2 id={id} className="text-xl font-semibold">
         {title}
       </h2>
@@ -66,14 +92,23 @@ export function StatsPage() {
     ...s.marriages.flatMap((m) => [m.firstMen.average, m.firstWomen.average, m.later.average]),
   )
   const maxFamilies = Math.max(0, ...s.childrenHistogram)
+  // Empty buckets past the largest family are noise; the last bucket keeps
+  // its "or more" label only if it is the real last one.
+  const lastFilled = s.childrenHistogram.reduce((last, n, i) => (n > 0 ? i : last), 0)
+  const histogram = s.childrenHistogram.slice(0, lastFilled + 1)
   const age = (a: Average) => (a.count === 0 ? '–' : t('stats.ageCount', { age: a.average, count: a.count }))
 
   return (
-    <div className="max-w-4xl space-y-10">
+    <div className="max-w-4xl space-y-8">
       <div className="space-y-3">
         <PageHeading title={t('nav.stats')}>{t('nav.stats')}</PageHeading>
         <p className="text-slate-700 dark:text-slate-300">{t('stats.intro')}</p>
-        <p>{t('stats.summary', { persons: s.persons, families: s.families, withLifespan: s.withLifespan })}</p>
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Tile label={t('stats.tilePeople')} value={s.persons} />
+          <Tile label={t('stats.tileFamilies')} value={s.families} />
+          <Tile label={t('stats.tileLifespan')} value={s.withLifespan} />
+          <Tile label={t('stats.tileChildren')} value={s.childrenAverage} />
+        </dl>
       </div>
 
       <Figure title={t('stats.lifespan')} caption={t('stats.lifespanCaption')}>
@@ -104,7 +139,7 @@ export function StatsPage() {
                     {t('stats.decadeValue', { decade: l.decade })}
                   </th>
                   <td className={`${td} w-1/2`}>
-                    <Bar value={l.average} max={maxAge}>
+                    <Bar value={l.average} max={maxAge} range={[l.min, l.max]}>
                       {l.average}
                     </Bar>
                   </td>
@@ -182,7 +217,7 @@ export function StatsPage() {
               </tr>
             </thead>
             <tbody>
-              {s.childrenHistogram.map((n, i) => (
+              {histogram.map((n, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: the index is the number of children
                 <tr key={i} className="border-t border-slate-200 dark:border-slate-800">
                   <th scope="row" className={`${td} font-medium`}>
@@ -212,8 +247,16 @@ export function StatsPage() {
             <h3 className="font-semibold">{t('stats.overall')}</h3>
             <ol className="flex flex-wrap gap-2">
               {s.givenNames.map((n) => (
-                <li key={n.name} className="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-800">
-                  {n.name} <span className="text-sm text-slate-600 dark:text-slate-400">({n.count})</span>
+                <li
+                  key={n.name}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 py-1 pr-1 pl-3 dark:border-slate-700 dark:bg-slate-800"
+                >
+                  {n.name}
+                  <span className="rounded-full bg-white px-2 text-sm text-slate-700 tabular-nums dark:bg-slate-900 dark:text-slate-300">
+                    <span className="sr-only">(</span>
+                    {n.count}
+                    <span className="sr-only">)</span>
+                  </span>
                 </li>
               ))}
             </ol>
@@ -264,16 +307,22 @@ function WordCloud({ names }: { names: NameCount[] }) {
   const counts = names.map((n) => n.count)
   const lo = Math.min(...counts)
   const hi = Math.max(...counts)
-  const size = (c: number) => (hi === lo ? 1.25 : 0.875 + ((c - lo) / (hi - lo)) * 1.625)
+  const share = (c: number) => (hi === lo ? 0.5 : (c - lo) / (hi - lo))
+  const tone = (c: number) =>
+    share(c) > 0.66
+      ? 'font-bold text-brand-800 dark:text-white'
+      : share(c) > 0.33
+        ? 'font-semibold text-brand-700 dark:text-brand-100'
+        : 'font-medium text-brand-600 dark:text-brand-100'
   return (
-    <ul className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+    <ul className="flex flex-wrap items-baseline justify-center gap-x-5 gap-y-2 rounded-xl bg-brand-50 px-4 py-6 dark:bg-slate-950">
       {[...names]
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((n) => (
           <li
             key={n.name}
-            style={{ fontSize: `${size(n.count)}rem` }}
-            className="font-medium text-brand-700 dark:text-brand-100"
+            style={{ fontSize: `${0.875 + share(n.count) * 1.625}rem` }}
+            className={`leading-tight ${tone(n.count)}`}
           >
             <span aria-hidden="true">{n.name}</span>
             <span className="sr-only">{t('stats.surnameEntry', { name: n.name, count: n.count })}</span>
