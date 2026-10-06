@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'GoTree',
         short_name: 'GoTree',
         description: 'Self-hosted family tree',
-        theme_color: '#0f5c7a',
-        background_color: '#ffffff',
+        theme_color: '#2f5e29',
+        background_color: '#faf7ef',
         display: 'standalone',
         start_url: '/',
         icons: [

@@ -77,7 +77,7 @@ export function Layout() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-dvh bg-white text-slate-900 print:min-h-0 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-dvh bg-slate-50 text-slate-900 print:min-h-0 dark:bg-slate-950 dark:text-slate-100">
       <a
         href="#main"
         className="sr-only print:hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-brand-700 focus:px-4 focus:py-3 focus:text-white"

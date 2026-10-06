@@ -171,7 +171,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
       type: 'smoothstep',
       pathOptions: { borderRadius: 14 },
       focusable: false,
-      style: { strokeWidth: 2, stroke: dark ? '#94a3b8' : '#64748b' },
+      style: { strokeWidth: 2, stroke: dark ? '#a59a82' : '#7b715f' },
     }))
   }, [layout, dark, look, byPerson, rootId])
   const leafy = look === 'leafy'
@@ -210,10 +210,10 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
         disableKeyboardA11y
       >
         <Background
-          bgColor={leafy ? (dark ? '#0b140f' : '#f7f3e6') : dark ? '#020617' : '#f8fafc'}
+          bgColor={leafy ? (dark ? '#0b140f' : '#f7f3e6') : dark ? '#0f1510' : '#faf7ef'}
           gap={20}
           size={1.5}
-          color={leafy ? (dark ? '#1f3a26' : '#d9d0b4') : dark ? '#334155' : '#cbd5e1'}
+          color={leafy ? (dark ? '#1f3a26' : '#d9d0b4') : dark ? '#2a3128' : '#cdc3ad'}
         />
         <Controls showInteractive={false} position="bottom-left" />
         <MiniMap
@@ -222,8 +222,8 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
           zoomable
           ariaLabel={t('tree.minimap')}
           nodeBorderRadius={8}
-          nodeColor={(n) => (n.type === 'person' ? (dark ? '#475569' : '#cbd5e1') : 'transparent')}
-          maskColor={dark ? 'rgb(2 6 23 / 0.6)' : 'rgb(241 245 249 / 0.6)'}
+          nodeColor={(n) => (n.type === 'person' ? (dark ? '#5d5444' : '#cdc3ad') : 'transparent')}
+          maskColor={dark ? 'rgb(15 21 16 / 0.6)' : 'rgb(242 237 224 / 0.6)'}
         />
       </ReactFlow>
     </div>
