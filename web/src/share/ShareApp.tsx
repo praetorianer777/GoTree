@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { GopherCredit } from '../components/GopherCredit'
 import { Link, NavLink, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { shareApi } from '../api/endpoints'
@@ -114,6 +115,9 @@ export function ShareApp() {
             </Routes>
           )}
         </main>
+        <footer className="border-t border-slate-200 px-4 py-4 md:px-8 dark:border-slate-800">
+          <GopherCredit />
+        </footer>
       </div>
     </PersonHrefContext.Provider>
   )

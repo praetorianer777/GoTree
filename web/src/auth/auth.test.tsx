@@ -87,6 +87,8 @@ describe('login', () => {
     const { container } = renderApp()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Log in' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Renée French' })).toHaveAttribute('href', 'https://reneefrench.blogspot.com/')
+    expect(screen.getByRole('link', { name: 'CC BY 4.0' })).toBeInTheDocument()
     expect(await axeViolations(container)).toEqual([])
 
     await user.type(screen.getByLabelText('Username'), 'admin')

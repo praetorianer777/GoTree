@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { GopherCredit } from './GopherCredit'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { getAuthState, logout } from '../api/client'
 import { useShortcuts } from '../hooks/useShortcuts'
@@ -130,6 +131,7 @@ export function Layout() {
               </li>
             ))}
           </ul>
+          <GopherCredit className="hidden px-6 pt-4 pb-6 md:block" />
         </nav>
 
         <main
