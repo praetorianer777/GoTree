@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { PersonRef } from '../api/types'
 import { fullName, lifespan } from '../lib/people'
+import { usePersonHref } from '../lib/personHref'
 import type { TreeView } from './layout'
 import { buildAncestors, buildDescendants, primaryParentFamily, type AncestorNode, type DescendantNode, type TreeIndex } from './model'
 
@@ -74,10 +75,11 @@ export function TreeList({ index, view, generations, bloodOnly }: Props) {
 
 function PersonText({ person, prefix }: { person: PersonRef; prefix?: string }) {
   const { t } = useTranslation()
+  const href = usePersonHref()
   return (
     <>
       {prefix && <span className="text-slate-600 dark:text-slate-400">{prefix}: </span>}
-      <Link to={`/people/${person.id}`} className="font-medium text-brand-700 underline underline-offset-4 dark:text-brand-100">
+      <Link to={href(person.id)} className="font-medium text-brand-700 underline underline-offset-4 dark:text-brand-100">
         {fullName(person) ?? t('person.unknown')}
       </Link>
       {lifespan(person) && <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">{lifespan(person)}</span>}

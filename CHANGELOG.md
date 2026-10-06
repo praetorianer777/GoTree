@@ -9,6 +9,12 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Share links: the owner creates read-only links for relatives without an account, for the whole
+  tree or one branch, leaving living people out or showing them by name only, optionally until a
+  date; visitors browse people and the tree, and a link can be withdrawn at any time. “On this
+  day” lists births, marriages and deaths of deceased relatives on today's date, on the home page
+  and in the shared view (#24)
+
 - Backup: administrators download the database (a consistent snapshot taken while GoTree runs)
   and all photos and documents as one zip, with restore instructions inside; light, dark or
   system theme, chosen in the header and remembered per browser (#23)

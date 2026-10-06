@@ -27,6 +27,10 @@ import type {
   DateChange,
   DateProposals,
   RelationshipReport,
+  DayReport,
+  ShareInfo,
+  ShareLink,
+  ShareLinkInput,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -106,3 +110,23 @@ export const normalizeDates = (changes: DateChange[]) =>
   postJSON<{ updated: number; skipped: number }>('/dates/normalize', { changes })
 export const getRelationship = (a: number, b: number, signal?: AbortSignal) =>
   getJSON<RelationshipReport>(`/relationship?${qs({ a, b })}`, signal)
+
+export const listShareLinks = (signal?: AbortSignal) => getJSON<ShareLink[]>('/share-links', signal)
+export const createShareLink = (input: ShareLinkInput) => postJSON<ShareLink>('/share-links', input)
+export const revokeShareLink = (id: number) => del(`/share-links/${id}`)
+export const getOnThisDay = (month: number, day: number, signal?: AbortSignal) =>
+  getJSON<DayReport>(`/onthisday?${qs({ month, day })}`, signal)
+
+/** The read-only API of a share link; the token stands in for a session. */
+export const shareApi = (token: string) => {
+  const base = `/share/${encodeURIComponent(token)}`
+  return {
+    info: (signal?: AbortSignal) => getJSON<ShareInfo>(base, signal),
+    persons: (q: string, signal?: AbortSignal) => getJSON<PersonList>(`${base}/persons?${qs({ q })}`, signal),
+    person: (id: number, signal?: AbortSignal) => getJSON<PersonDetail>(`${base}/persons/${id}`, signal),
+    tree: (id: number, opts: { up: number; down: number }, signal?: AbortSignal) =>
+      getJSON<TreeGraph>(`${base}/tree/${id}?${qs(opts)}`, signal),
+    onThisDay: (month: number, day: number, signal?: AbortSignal) =>
+      getJSON<DayReport>(`${base}/onthisday?${qs({ month, day })}`, signal),
+  }
+}

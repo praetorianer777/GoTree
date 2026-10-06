@@ -282,11 +282,15 @@ func (s *Server) tree(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	q := r.URL.Query()
-	g, err := s.Store.Tree(r.Context(), actorFrom(r), id, store.TreeOptions{
+	g, err := s.Store.Tree(r.Context(), actorFrom(r), id, treeOptions(r))
+	s.respond(w, http.StatusOK, g, err)
+}
+
+func treeOptions(r *http.Request) store.TreeOptions {
+	siblings := r.URL.Query().Get("siblings")
+	return store.TreeOptions{
 		Up:       queryInt(r, "up", 0),
 		Down:     queryInt(r, "down", 0),
-		Siblings: q.Get("siblings") == "1" || q.Get("siblings") == "true",
-	})
-	s.respond(w, http.StatusOK, g, err)
+		Siblings: siblings == "1" || siblings == "true",
+	}
 }

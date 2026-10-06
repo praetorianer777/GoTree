@@ -8,7 +8,7 @@ import { Button } from './Button'
 import { ShortcutsHelp } from './ShortcutsHelp'
 import { ThemeSwitch } from './ThemeSwitch'
 import { UpdateNotice } from './UpdateNotice'
-import { CheckIcon, HomeIcon, LinkIcon, PeopleIcon, PhotoIcon, SourceIcon, TransferIcon, TreeIcon } from './icons'
+import { CheckIcon, HomeIcon, LinkIcon, PeopleIcon, PhotoIcon, ShareIcon, SourceIcon, TransferIcon, TreeIcon } from './icons'
 
 // The phone bar has room for five; the rest appear from md up and are
 // reachable on phones through the pages that use them.
@@ -20,6 +20,7 @@ const navItems = [
   { to: '/media', key: 'nav.media', Icon: PhotoIcon, end: false, phone: false },
   { to: '/relationship', key: 'nav.relationship', Icon: LinkIcon, end: false, phone: false },
   { to: '/quality', key: 'nav.quality', Icon: CheckIcon, end: false, phone: false },
+  { to: '/sharing', key: 'nav.sharing', Icon: ShareIcon, end: false, phone: false },
   { to: '/import-export', key: 'nav.importExport', Icon: TransferIcon, end: false, phone: true },
 ] as const
 

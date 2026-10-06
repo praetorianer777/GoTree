@@ -470,3 +470,49 @@ export interface RelationshipReport {
   others: Kinship[]
   persons: Record<number, PersonRef>
 }
+
+export type ShareScope = 'tree' | 'descendants'
+export type SharePrivacy = 'deceased' | 'living_names'
+
+export interface ShareLink {
+  id: number
+  label: string
+  scope: ShareScope
+  root: PersonRef | null
+  privacy: SharePrivacy
+  expiresAt: string | null
+  revokedAt: string | null
+  lastUsedAt: string | null
+  createdAt: string
+  /** Only present right after creating the link. */
+  token?: string
+}
+
+export interface ShareLinkInput {
+  label: string
+  scope: ShareScope
+  rootPersonId: number | null
+  privacy: SharePrivacy
+  expiresOn: string
+}
+
+export interface ShareInfo {
+  treeName: string
+  label: string
+  scope: ShareScope
+  privacy: SharePrivacy
+  root: PersonRef | null
+  startId: number | null
+}
+
+export interface DayEvent {
+  eventId: number
+  type: 'BIRT' | 'MARR' | 'DEAT'
+  year: number
+  personIds: number[]
+}
+
+export interface DayReport {
+  events: DayEvent[]
+  persons: Record<number, PersonRef>
+}

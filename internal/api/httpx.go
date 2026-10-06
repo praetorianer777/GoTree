@@ -39,6 +39,8 @@ func writeStoreError(w http.ResponseWriter, log *slog.Logger, err error) {
 		writeJSON(w, http.StatusUnprocessableEntity, errorBody{Error: "invalid input", Fields: ve.Fields})
 	case errors.Is(err, store.ErrNotFound):
 		writeError(w, http.StatusNotFound, "not found")
+	case errors.Is(err, store.ErrOwnerOnly):
+		writeError(w, http.StatusForbidden, err.Error())
 	case errors.Is(err, store.ErrConflict):
 		writeError(w, http.StatusConflict, "still in use")
 	default:
