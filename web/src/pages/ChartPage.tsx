@@ -42,7 +42,7 @@ export function ChartPage() {
   const [orientation, setOrientation] = useState<Orientation>('auto')
   const [title, setTitle] = useState<string | null>(null)
   const [subtitle, setSubtitle] = useState<string | null>(null)
-  const [theme, setTheme] = useState<ChartThemeName>('classic')
+  const [theme, setTheme] = useState<ChartThemeName>('tree')
   const [embedded, setEmbedded] = useState<Record<string, string> | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 

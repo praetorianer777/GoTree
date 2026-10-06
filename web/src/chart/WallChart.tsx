@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { fullName, lifespan } from '../lib/people'
 import type { LayoutNode, TreeLayout } from '../tree/layout'
 import type { TreeIndex } from '../tree/model'
+import { branchEnds, branchPath, HEART_PATH, LEAF_PATH, leafColors, leavesAlong } from '../tree/branches'
 import { bounds, elbow, photoUrl } from './geometry'
 import { MARGIN_MM, TITLE_MM, type Fit } from './paper'
 import { chartThemes, type ChartThemeName } from './themes'
@@ -42,6 +43,9 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
   const people = layout.nodes.filter((n) => n.kind === 'person').length
   const th = chartThemes[theme]
   const cx = fit.paperW / 2
+  const rootNode = layout.nodes.find((n) => n.root)
+  const rootY = rootNode ? center(rootNode).y : 0
+  const rx = (n: LayoutNode) => (th.leafy ? n.h / 2 : 12)
 
   return (
     <svg
@@ -93,14 +97,21 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
             <g stroke={th.line} strokeWidth={0.3}>
               <line x1={cx - 50} y1={MARGIN_MM + 17.5} x2={cx - 3} y2={MARGIN_MM + 17.5} />
               <line x1={cx + 3} y1={MARGIN_MM + 17.5} x2={cx + 50} y2={MARGIN_MM + 17.5} />
-              <rect
-                x={cx - 1.1}
-                y={MARGIN_MM + 16.4}
-                width={2.2}
-                height={2.2}
-                fill={th.line}
-                transform={`rotate(45 ${cx} ${MARGIN_MM + 17.5})`}
-              />
+              {th.leafy ? (
+                <g stroke="none">
+                  <path d={LEAF_PATH} transform={`translate(${cx} ${MARGIN_MM + 17.5}) rotate(-160) scale(0.3)`} fill={leafColors[0]} />
+                  <path d={LEAF_PATH} transform={`translate(${cx} ${MARGIN_MM + 17.5}) rotate(-20) scale(0.3)`} fill={leafColors[1]} />
+                </g>
+              ) : (
+                <rect
+                  x={cx - 1.1}
+                  y={MARGIN_MM + 16.4}
+                  width={2.2}
+                  height={2.2}
+                  fill={th.line}
+                  transform={`rotate(45 ${cx} ${MARGIN_MM + 17.5})`}
+                />
+              )}
             </g>
           )}
         </g>
@@ -112,12 +123,37 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
             const d = byId.get(e.target)
             if (!s || !d) return null
             const [top, bottom] = center(s).y <= center(d).y ? [s, d] : [d, s]
-            return <path key={e.id} d={elbow(center(top).x, top.y + top.h, center(bottom).x, bottom.y)} />
+            const upper = { x: center(top).x, y: top.y + top.h }
+            const lower = { x: center(bottom).x, y: bottom.y }
+            if (!th.leafy) return <path key={e.id} d={elbow(upper.x, upper.y, lower.x, lower.y)} />
+            const { from, to, wFrom, wTo } = branchEnds(
+              upper,
+              lower,
+              top.kind === 'junction',
+              bottom.kind === 'junction',
+              rootY,
+            )
+            return (
+              <g key={e.id} stroke="none">
+                <path d={branchPath(from, to, wFrom, wTo)} fill={th.line} />
+                {leavesAlong(from, to, e.id, (wFrom + wTo) / 2).map((l) => (
+                  <path
+                    key={`${l.x},${l.y}`}
+                    d={LEAF_PATH}
+                    transform={`translate(${l.x} ${l.y}) rotate(${l.angle}) scale(${l.scale})`}
+                    fill={leafColors[l.shade]}
+                  />
+                ))}
+              </g>
+            )
           })}
         </g>
         {layout.nodes.map((n) => {
           if (n.kind === 'junction') {
             const c = center(n)
+            if (th.leafy) {
+              return <path key={n.id} d={HEART_PATH} transform={`translate(${c.x} ${c.y}) scale(1.3)`} fill="#be123c" />
+            }
             return (
               <circle key={n.id} cx={c.x} cy={c.y} r={n.w / 2 - 1} fill={th.paper} stroke={th.line} strokeWidth={3} />
             )
@@ -130,7 +166,7 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
                   y={n.y}
                   width={n.w}
                   height={n.h}
-                  rx={12}
+                  rx={rx(n)}
                   fill={th.paper}
                   stroke={th.line}
                   strokeWidth={1.5}
@@ -160,7 +196,7 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
                   y={n.y}
                   width={n.w}
                   height={n.h}
-                  rx={12}
+                  rx={rx(n)}
                   fill={th.card}
                   stroke={th.root}
                   strokeWidth={1.5}
@@ -181,19 +217,19 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
           return (
             <g key={n.id}>
               <clipPath id={`${clip}-card`}>
-                <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={12} />
+                <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={rx(n)} />
               </clipPath>
               <rect
                 x={n.x}
                 y={n.y}
                 width={n.w}
                 height={n.h}
-                rx={12}
+                rx={rx(n)}
                 fill={n.root ? th.rootFill : th.card}
                 stroke={n.root ? th.root : th.cardStroke}
                 strokeWidth={n.root ? 3 : 1.5}
               />
-              {th.sex[p.sex] && (
+              {!th.leafy && th.sex[p.sex] && (
                 <rect
                   x={n.x}
                   y={n.y}

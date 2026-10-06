@@ -319,7 +319,8 @@
     "childrenOf": "Children of {{name}}",
     "centerHere": "Center tree here",
     "openPage": "Open page",
-    "addRelative": "Add a relative"
+    "addRelative": "Add a relative",
+    "leafy": "Leafy look"
   },
   "citation": {
     "sources": "Sources",
@@ -975,6 +976,7 @@
     "defaultSubtitle_other": "{{count}} people · made on {{date}}",
     "theme": "Style",
     "themes": {
+      "tree": "Tree (branches and leaves)",
       "classic": "Classic",
       "heritage": "Heritage (sepia, serif)",
       "modern": "Modern (coloured title band)"

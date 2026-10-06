@@ -14,7 +14,8 @@ import { useTranslation } from 'react-i18next'
 import { useDark } from '../lib/theme'
 import type { LayoutNode, TreeLayout } from './layout'
 import type { TreeIndex } from './model'
-import { nodeTypes } from './nodeTypes'
+import type { BranchEdgeData } from './BranchEdge'
+import { edgeTypes, nodeTypes, type TreeLook } from './nodeTypes'
 import type { PersonNodeData, RepeatNodeData } from './nodes'
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
   selectedId: number | null
   onSelect: (id: number) => void
   onCenter: (id: number) => void
+  look?: TreeLook
 }
 
 export function TreeCanvas(props: Props) {
@@ -72,7 +74,7 @@ function neighbour(nodes: LayoutNode[], from: LayoutNode, key: string): LayoutNo
   return best
 }
 
-function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
+function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' }: Props) {
   const { t } = useTranslation()
   const flow = useReactFlow()
   const dark = useDark()
@@ -124,30 +126,39 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
             },
             onCenter,
             onKey,
+            look,
           }
           return { ...base, data }
         }
         if (n.kind === 'repeat') {
-          const data: RepeatNodeData = { person: index.persons.get(n.personId!)!, onJump: (id) => reveal(id, true) }
+          const data: RepeatNodeData = {
+            person: index.persons.get(n.personId!)!,
+            onJump: (id) => reveal(id, true),
+            look,
+          }
           return { ...base, data }
         }
-        return { ...base, data: {} }
+        return { ...base, data: { look } }
       }),
     // onKey and reveal only read layout-derived values that are deps here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [layout, index, selectedId, focusId, rootId, onSelect, onCenter],
+    [layout, index, selectedId, focusId, rootId, onSelect, onCenter, look],
   )
-  const edges: Edge[] = useMemo(
-    () =>
-      layout.edges.map((e) => ({
-        ...e,
-        type: 'smoothstep',
-        pathOptions: { borderRadius: 14 },
-        focusable: false,
-        style: { strokeWidth: 2, stroke: dark ? '#94a3b8' : '#64748b' },
-      })),
-    [layout, dark],
-  )
+  const edges: Edge[] = useMemo(() => {
+    if (look === 'leafy') {
+      const root = byPerson.get(rootId)
+      const data: BranchEdgeData = { rootY: root ? center(root).y : 0 }
+      return layout.edges.map((e) => ({ ...e, type: 'branch', focusable: false, data }))
+    }
+    return layout.edges.map((e) => ({
+      ...e,
+      type: 'smoothstep',
+      pathOptions: { borderRadius: 14 },
+      focusable: false,
+      style: { strokeWidth: 2, stroke: dark ? '#94a3b8' : '#64748b' },
+    }))
+  }, [layout, dark, look, byPerson, rootId])
+  const leafy = look === 'leafy'
 
   // Re-frame the chart whenever a different tree is shown.
   useEffect(() => {
@@ -164,6 +175,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         nodesDraggable={false}
         nodesConnectable={false}
         nodesFocusable={false}
@@ -174,10 +186,14 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter }: Props) {
         fitView
         onlyRenderVisibleElements={layout.nodes.length > 300}
         colorMode={dark ? 'dark' : 'light'}
-        style={{ background: dark ? '#020617' : '#f8fafc' }}
         disableKeyboardA11y
       >
-        <Background gap={20} size={1.5} color={dark ? '#334155' : '#cbd5e1'} />
+        <Background
+          bgColor={leafy ? (dark ? '#0b140f' : '#f7f3e6') : dark ? '#020617' : '#f8fafc'}
+          gap={20}
+          size={1.5}
+          color={leafy ? (dark ? '#1f3a26' : '#d9d0b4') : dark ? '#334155' : '#cbd5e1'}
+        />
         <Controls showInteractive={false} position="bottom-left" />
         <MiniMap
           className="!hidden md:!block"
