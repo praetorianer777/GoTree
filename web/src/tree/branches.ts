@@ -29,28 +29,31 @@ export interface Palette {
 }
 
 export const lightPalette: Palette = {
-  canopyShadow: '#8fb873',
-  canopy: '#b5d398',
+  canopyShadow: '#5f8c45',
+  canopy: '#86b25e',
   bark: '#6b4a2b',
   barkDark: '#45301b',
   barkLight: '#9a7048',
-  leaves: ['#2f6b2f', '#3f7d3a', '#4f8f3f', '#6aa84f', '#8cbf5f'],
+  leaves: ['#2b5a2b', '#376e30', '#4a8136', '#5b8f2e', '#6f9a3a', '#8bb050', '#a9bd52'],
   leafEdge: '#23502a',
   grass: '#86b15e',
   grassDark: '#5f8f43',
 }
 
 export const darkPalette: Palette = {
-  canopyShadow: '#132617',
-  canopy: '#1d3823',
+  canopyShadow: '#142a18',
+  canopy: '#23432a',
   bark: '#8a6240',
   barkDark: '#5e4128',
   barkLight: '#b58a5e',
-  leaves: ['#2c5e2c', '#3a7135', '#4a823b', '#5f9a48', '#7fb058'],
+  leaves: ['#264f27', '#31612d', '#3f7232', '#4f7c2b', '#5f8a34', '#76a046', '#93ad4a'],
   leafEdge: '#173a1d',
   grass: '#3f6b34',
   grassDark: '#2c5226',
 }
+
+/** Leaf colours per palette, darkest first; olive and yellowish tones break up the green. */
+export const SHADES = 7
 
 /** A leaf 15 units long pointing right from its stem at the origin. */
 export const LEAF_PATH = 'M0 0 Q 3 -5 9 -4.2 Q 13 -2.4 15 0 Q 13 2.4 9 4.2 Q 3 5 0 0 Z'
@@ -152,7 +155,7 @@ export function branchEnds(
 }
 
 /** Leaves heaped around c within radius r, darker ones first so lighter ones lie on top. */
-export function foliage(c: Point, r: number, count: number, rnd: () => number, shades = 5): Leaf[] {
+export function foliage(c: Point, r: number, count: number, rnd: () => number, shades = SHADES): Leaf[] {
   const out: Leaf[] = []
   for (let i = 0; i < count; i++) {
     const a = rnd() * Math.PI * 2
@@ -362,9 +365,9 @@ export function growCanopy(layout: TreeLayout, origin: Point): Canopy {
     if (n.kind !== 'person' && n.kind !== 'unknown') continue
     const rnd = random(`canopy-${n.id}`)
     const c = { x: n.x + n.w / 2 - origin.x, y: n.y + n.h / 2 - origin.y - 6 }
-    const a = n.w / 2 + 20
-    const b = n.h / 2 + 22
-    out.shadows.push(clump(c, a, b, rnd, 7).outline)
+    const a = n.w / 2 + 12
+    const b = n.h / 2 + 13
+    out.shadows.push(clump(c, a, b, rnd, 5).outline)
     const body = clump(c, a - 3, b - 3, rnd)
     out.bodies.push(body.outline)
     for (const p of body.rim) {
@@ -376,7 +379,7 @@ export function growCanopy(layout: TreeLayout, origin: Point): Canopy {
         y: r1(p.y + (rnd() - 0.5) * 6),
         angle: Math.round((Math.atan2(p.y - c.y, p.x - c.x) * 180) / Math.PI + (rnd() - 0.5) * 70),
         scale: Math.round((0.8 + rnd() * 0.5) * 100) / 100,
-        shade: Math.max(0, Math.min(4, Math.round(2 + top * 2 + (rnd() - 0.5)))),
+        shade: Math.max(0, Math.min(SHADES - 1, Math.round(3 + top * 3 + (rnd() - 0.5) * 2))),
       })
     }
   }

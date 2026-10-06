@@ -15,7 +15,8 @@ import { useDark } from '../lib/theme'
 import type { LayoutNode, TreeLayout } from './layout'
 import type { TreeIndex } from './model'
 import type { BranchEdgeData } from './BranchEdge'
-import { growCanopy, withTrunk } from './branches'
+import { darkPalette, growCanopy, lightPalette, withTrunk } from './branches'
+import { TextureDefs } from './Nature'
 import { edgeTypes, nodeTypes, type TreeLook } from './nodeTypes'
 import type { CanopyNodeData, PersonNodeData, RepeatNodeData } from './nodes'
 
@@ -125,7 +126,6 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
             data,
             selectable: false,
             focusable: false,
-            zIndex: -2,
           }
         }
         const base = { id: n.id, position: { x: n.x, y: n.y }, width: n.w, height: n.h, type: n.kind }
@@ -184,6 +184,11 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
 
   return (
     <div role="group" aria-label={t('tree.chartLabel')} aria-describedby={helpId} className="size-full">
+      {leafy && (
+        <svg aria-hidden="true" width={0} height={0} className="absolute">
+          <TextureDefs palette={dark ? darkPalette : lightPalette} />
+        </svg>
+      )}
       <p id={helpId} className="sr-only">
         {t('tree.chartHelp')}
       </p>
