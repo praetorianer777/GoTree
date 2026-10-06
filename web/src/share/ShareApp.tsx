@@ -82,7 +82,7 @@ export function ShareApp() {
         >
           {t('app.skipToContent')}
         </a>
-        <header className="border-b border-slate-200 px-4 py-2 dark:border-slate-800">
+        <header className="border-b border-slate-200 bg-slate-100 px-4 py-2 dark:border-slate-800 dark:bg-slate-950">
           <div className="flex flex-wrap items-center gap-3">
             <img src="/icons/logo-64.png" alt="" width={32} height={32} className="size-8 rounded-md" />
             <span className="min-w-0 truncate text-lg font-semibold text-brand-700 dark:text-brand-100">
