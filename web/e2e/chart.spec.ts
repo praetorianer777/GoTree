@@ -33,7 +33,8 @@ test('print a wall chart and download it as SVG', async ({ page }) => {
   const svg = readFileSync((await download.path())!, 'utf8')
   expect(svg).toContain('<svg')
   expect(svg).toContain(`<title>Ancestors of Paul ${surname}</title>`)
-  // Long names are shortened to fit the card.
-  expect(svg).toContain('♂ Hans Chart')
+  // Given names and surname are on lines of their own.
+  expect(svg).toContain('>♂ Hans</text>')
+  expect(svg).toMatch(/>Chart[^<]*<\/text>/)
   expect(svg).toContain('width="420mm"')
 })

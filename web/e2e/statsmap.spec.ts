@@ -32,11 +32,14 @@ test('statistics and the migration map', async ({ page }) => {
   await expect(slider).toHaveAttribute('min', '1850')
   await expect(slider).toHaveAttribute('max', '1920')
   await expect(page.getByRole('row', { name: new RegExp(`Bremen${surname}.*Fritz`) })).toBeVisible()
-  // Leaflet draws the place as a circle on the map.
-  await expect(page.locator('.leaflet-overlay-pane path.leaflet-interactive')).toHaveCount(1)
+  // One numbered marker per place, and no move yet.
+  await expect(page.locator('.leaflet-marker-pane .gt-marker')).toHaveText(['1'])
+  await expect(page.locator('.leaflet-overlay-pane path')).toHaveCount(0)
   await expectAccessible(page)
 
   await slider.fill('1900')
   await expect(page.getByRole('heading', { name: 'Who was where in 1900' })).toBeVisible()
   await expect(page.getByRole('row', { name: new RegExp(`NewYork${surname}.*Fritz`) })).toBeVisible()
+  // The emigration is drawn as a trail from Bremen to New York.
+  await expect(page.locator('.leaflet-overlay-pane path')).toHaveCount(1)
 })
