@@ -105,6 +105,12 @@ export function CitationText({ citation }: { citation: CitationRef }) {
         {citation.sourceTitle}
       </Link>
       {citation.page && <span className="text-slate-600 dark:text-slate-400">, {citation.page}</span>}
+      {citation.field && (
+        <span className="text-slate-600 dark:text-slate-400">
+          {' '}
+          ({t('citation.supports', { field: t(`citation.field.${citation.field}` as 'citation.field.date', { defaultValue: citation.field }) })})
+        </span>
+      )}
       {citation.quality !== null && (
         <span className="ml-2 text-xs text-slate-600 dark:text-slate-400">({t(qualityKey(citation.quality))})</span>
       )}

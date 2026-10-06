@@ -605,3 +605,73 @@ export interface SuggestionReport {
   suggestions: Suggestion[]
   persons: Record<number, PersonRef>
 }
+
+export type RoleKind = 'principal' | 'partner' | 'parent' | 'participant'
+export type ColumnKind = 'given' | 'surname' | 'sex' | 'age' | 'occupation' | 'residence' | 'birthplace' | 'notes'
+
+export interface TemplateRole {
+  key: string
+  label: string
+  kind: RoleKind
+  participant: string
+}
+
+export interface RecordTemplate {
+  key: string
+  name: string
+  builtin: boolean
+  eventType: string
+  roles: TemplateRole[]
+  columns: ColumnKind[]
+}
+
+export type RowAction = 'new' | 'person' | 'skip'
+
+export interface TranscriptionRow {
+  line: string
+  role: string
+  values: Partial<Record<ColumnKind, string>>
+  action: RowAction
+  personId: number | null
+}
+
+export interface Transcription {
+  id: number
+  templateKey: string
+  title: string
+  source: { id: number; title: string } | null
+  page: string
+  date: string
+  place: PlaceRef | null
+  notes: string
+  rows: TranscriptionRow[]
+  status: 'draft' | 'applied'
+  eventId: number | null
+  appliedAt: string | null
+  persons: Record<number, PersonRef>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TranscriptionInput {
+  templateKey: string
+  title: string
+  sourceId: number | null
+  page: string
+  date: string
+  placeId: number | null
+  notes: string
+  rows: TranscriptionRow[]
+}
+
+export interface MatchCandidate {
+  person: PersonRef
+  score: number
+}
+
+export interface ApplyResult extends Transcription {
+  eventId: number
+  familyId?: number
+  created: number[]
+  facts: number
+}

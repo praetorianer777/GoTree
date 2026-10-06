@@ -9,6 +9,13 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Source-first transcription: copy a census household, baptism, marriage, burial, death or any
+  other record into a grid, or define your own record templates; each person is matched against
+  the tree, also across spelling variants (Meyer, Maier, Mayr), and adding the record creates the
+  new people, the event with everyone's role, the couple's or parents' family, occupations,
+  residences and births estimated from ages, each cited to its line in the record and to the value
+  it supports (#32)
+
 - Research tasks and a research log: plan what to find out (status, priority, due date, linked
   people, sources and places) and record every search with where and when, including the ones that
   found nothing; a missing or unsourced birth, a missing death or any data-quality problem becomes

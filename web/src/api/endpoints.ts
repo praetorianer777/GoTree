@@ -37,6 +37,12 @@ import type {
   ResearchTask,
   ResearchTaskInput,
   SuggestionReport,
+  ApplyResult,
+  MatchCandidate,
+  RecordTemplate,
+  Transcription,
+  TranscriptionInput,
+  TranscriptionRow,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -156,3 +162,16 @@ export const updateLogEntry = (id: number, input: LogEntryInput) => putJSON<LogE
 export const deleteLogEntry = (id: number) => del(`/research/log/${id}`)
 export const getSuggestions = (personId: number, signal?: AbortSignal) =>
   getJSON<SuggestionReport>(`/research/suggestions?${qs({ person: personId })}`, signal)
+
+export const listTemplates = (signal?: AbortSignal) => getJSON<RecordTemplate[]>('/templates', signal)
+export const createTemplate = (t: RecordTemplate) => postJSON<RecordTemplate>('/templates', t)
+export const updateTemplate = (id: number, t: RecordTemplate) => putJSON<RecordTemplate>(`/templates/${id}`, t)
+export const deleteTemplate = (id: number) => del(`/templates/${id}`)
+export const listTranscriptions = (signal?: AbortSignal) => getJSON<Transcription[]>('/transcriptions', signal)
+export const getTranscription = (id: number, signal?: AbortSignal) => getJSON<Transcription>(`/transcriptions/${id}`, signal)
+export const createTranscription = (input: TranscriptionInput) => postJSON<Transcription>('/transcriptions', input)
+export const updateTranscription = (id: number, input: TranscriptionInput) => putJSON<Transcription>(`/transcriptions/${id}`, input)
+export const deleteTranscription = (id: number) => del(`/transcriptions/${id}`)
+export const applyTranscription = (id: number) => postJSON<ApplyResult>(`/transcriptions/${id}/apply`, {})
+export const matchRows = (date: string, rows: TranscriptionRow[]) =>
+  postJSON<MatchCandidate[][]>('/transcriptions/match', { date, rows })

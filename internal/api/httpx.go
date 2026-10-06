@@ -41,6 +41,8 @@ func writeStoreError(w http.ResponseWriter, log *slog.Logger, err error) {
 		writeError(w, http.StatusNotFound, "not found")
 	case errors.Is(err, store.ErrOwnerOnly):
 		writeError(w, http.StatusForbidden, err.Error())
+	case errors.Is(err, store.ErrApplied):
+		writeError(w, http.StatusConflict, err.Error())
 	case errors.Is(err, store.ErrConflict):
 		writeError(w, http.StatusConflict, "still in use")
 	default:

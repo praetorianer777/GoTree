@@ -67,6 +67,7 @@ func (s *Server) Handler() http.Handler {
 			s.shareLinkRoutes(r)
 			s.calendarFeedRoutes(r)
 			s.researchRoutes(r)
+			s.transcriptionRoutes(r)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {

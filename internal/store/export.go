@@ -272,7 +272,9 @@ func (ex *exporter) load(ctx context.Context) error {
 	rows.Close()
 
 	rows, err = db.QueryContext(ctx, `
-		SELECT l.entity_type, l.entity_id, c.id, c.source_id, c.page, c.text, c.notes, c.quality, c.extra_json
+		-- GEDCOM cites a fact as a whole; a citation of its date and of its
+		-- place is one SOUR.
+		SELECT DISTINCT l.entity_type, l.entity_id, c.id, c.source_id, c.page, c.text, c.notes, c.quality, c.extra_json
 		FROM citation_links l JOIN citations c ON c.id = l.citation_id
 		WHERE c.tree_id = ? ORDER BY c.id`, a.TreeID)
 	if err != nil {
