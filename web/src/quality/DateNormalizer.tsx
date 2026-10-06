@@ -113,7 +113,7 @@ function ProposalRow(props: {
             t('quality.family', { names: names.map((n) => n.name).join(' & ') })
           ) : (
             names.map((n) => (
-              <Link key={n.id} to={`/people/${n.id}`} className="underline">
+              <Link key={n.id} to={`/people/${n.id}`} className="inline-flex min-h-11 items-center underline">
                 {n.name}
               </Link>
             ))

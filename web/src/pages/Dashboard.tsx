@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { getHealth } from '../api/client'
+import { getOnThisDay } from '../api/endpoints'
 import { PageHeading } from '../components/PageHeading'
+import { OnThisDay } from '../share/OnThisDay'
 
 export function Dashboard() {
   const { t } = useTranslation()
@@ -17,6 +19,7 @@ export function Dashboard() {
     <div className="max-w-3xl space-y-6">
       <PageHeading title={t('app.name')}>{t('dashboard.title')}</PageHeading>
       <p className="text-slate-700 dark:text-slate-300">{t('dashboard.intro')}</p>
+      <OnThisDay queryKey={['dashboard']} load={getOnThisDay} />
       <section aria-labelledby="server-status" className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
         <h2 id="server-status" className="text-sm font-semibold text-slate-600 dark:text-slate-400">
           {t('dashboard.serverStatus')}
@@ -37,12 +40,13 @@ export function Dashboard() {
         <h2 id="more-tools" className="text-xl font-semibold">
           {t('dashboard.more')}
         </h2>
-        <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
           {(
             [
               ['/media', 'nav.media'],
               ['/relationship', 'nav.relationship'],
               ['/quality', 'nav.quality'],
+              ['/sharing', 'nav.sharing'],
             ] as const
           ).map(([to, key]) => (
             <li key={to}>

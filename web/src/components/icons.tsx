@@ -78,3 +78,12 @@ export const LinkIcon = () => (
     <path d="M6 8.5v3a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3v-1.5" />
   </Icon>
 )
+
+export const ShareIcon = () => (
+  <Icon>
+    <circle cx="18" cy="5" r="2.5" />
+    <circle cx="6" cy="12" r="2.5" />
+    <circle cx="18" cy="19" r="2.5" />
+    <path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" />
+  </Icon>
+)

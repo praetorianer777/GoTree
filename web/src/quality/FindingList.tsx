@@ -47,9 +47,13 @@ export function FindingList({ report, currentPersonId }: Props) {
             <div className="min-w-0">
               <p>{text(f, report.persons)}</p>
               {people.length > 0 && (
-                <p className="mt-1 flex flex-wrap gap-x-4 text-sm">
+                <p className="flex flex-wrap gap-x-4 text-sm">
                   {people.map((id) => (
-                    <Link key={id} to={`/people/${id}`} className="text-brand-700 underline dark:text-brand-100">
+                    <Link
+                      key={id}
+                      to={`/people/${id}`}
+                      className="inline-flex min-h-11 items-center text-brand-700 underline dark:text-brand-100"
+                    >
                       {fullName(report.persons[id] ?? { givenNames: '', surname: '' }) ?? t('person.unknown')}
                     </Link>
                   ))}

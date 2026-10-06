@@ -51,6 +51,7 @@ func (s *Server) Handler() http.Handler {
 		r.Post("/auth/setup", s.setup)
 		r.Post("/auth/login", s.login)
 		r.Post("/auth/logout", s.logout)
+		s.shareRoutes(r)
 
 		r.Group(func(r chi.Router) {
 			r.Use(s.requireSession)
@@ -63,6 +64,7 @@ func (s *Server) Handler() http.Handler {
 			r.Get("/export/gedcom", s.exportGEDCOM)
 			r.Get("/export/verify", s.verifyExport)
 			r.Get("/backup", s.backup)
+			s.shareLinkRoutes(r)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {

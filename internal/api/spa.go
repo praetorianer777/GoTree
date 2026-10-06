@@ -53,6 +53,11 @@ func spaHandler(dist fs.FS) http.Handler {
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache")
+		// A share link's address is its password; search engines must not
+		// list pages that someone posted it on.
+		if strings.HasPrefix(r.URL.Path, "/share/") {
+			w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+		}
 		_, _ = w.Write(index)
 	})
 }

@@ -7,6 +7,8 @@ import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
 import { QualityPage } from './pages/QualityPage'
 import { RelationshipPage } from './pages/RelationshipPage'
+import { SharingPage } from './pages/SharingPage'
+import { ShareApp } from './share/ShareApp'
 import { ImportExportPage } from './pages/ImportExportPage'
 import { MediaListPage } from './pages/MediaListPage'
 import { MediaPage } from './pages/MediaPage'
@@ -15,6 +17,16 @@ import { SourcesPage } from './pages/SourcesPage'
 import { TreePage } from './pages/TreePage'
 
 export function App() {
+  return (
+    <Routes>
+      {/* Visitors with a share link have no account, so this sits outside the gate. */}
+      <Route path="share/:token/*" element={<ShareApp />} />
+      <Route path="*" element={<AuthedApp />} />
+    </Routes>
+  )
+}
+
+function AuthedApp() {
   return (
     <AuthGate>
       <Routes>
@@ -29,6 +41,7 @@ export function App() {
           <Route path="media/:id" element={<MediaPage />} />
           <Route path="relationship" element={<RelationshipPage />} />
           <Route path="quality" element={<QualityPage />} />
+          <Route path="sharing" element={<SharingPage />} />
           <Route path="import-export" element={<ImportExportPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

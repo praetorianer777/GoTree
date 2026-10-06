@@ -7,7 +7,8 @@ import { CitationText } from '../sources/CitationEditor'
 interface Props {
   items: TimelineItem[]
   personId: number
-  onEdit: (item: TimelineItem) => void
+  /** Without it the timeline is read-only. */
+  onEdit?: (item: TimelineItem) => void
 }
 
 export function Timeline({ items, personId, onEdit }: Props) {
@@ -62,10 +63,12 @@ export function Timeline({ items, personId, onEdit }: Props) {
                 </ul>
               )}
             </div>
-            <Button variant="ghost" onClick={() => onEdit({ event: e, family })}>
-              {t('common.edit')}
-              <span className="sr-only">: {label}</span>
-            </Button>
+            {onEdit && (
+              <Button variant="ghost" onClick={() => onEdit({ event: e, family })}>
+                {t('common.edit')}
+                <span className="sr-only">: {label}</span>
+              </Button>
+            )}
           </li>
         )
       })}
