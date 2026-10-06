@@ -40,3 +40,22 @@
     }
   }
 }
+
+/* Map markers are Leaflet HTML, outside React. */
+.gt-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, var(--color-brand-500), var(--color-brand-800));
+  box-shadow: 0 2px 6px rgb(15 23 42 / 0.45);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.gt-marker-approx {
+  border-style: dashed;
+}

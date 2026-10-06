@@ -115,6 +115,24 @@ export function MapPage() {
           <Suspense fallback={<p>{t('app.loading')}</p>}>
             <MapView data={data.data} positions={positions} year={shown} />
           </Suspense>
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700 dark:text-slate-300">
+            <li className="flex items-center gap-2">
+              <span aria-hidden="true" className="gt-marker size-6 text-xs">
+                3
+              </span>
+              {t('map.legendMarker')}
+            </li>
+            <li className="flex items-center gap-2">
+              <span aria-hidden="true" className="gt-marker gt-marker-approx size-6 text-xs">
+                1
+              </span>
+              {t('map.legendApproximate')}
+            </li>
+            <li className="flex items-center gap-2">
+              <span aria-hidden="true" className="h-1 w-8 rounded-full bg-orange-700" />
+              {t('map.legendTrail')}
+            </li>
+          </ul>
           <p className="text-xs text-slate-600 dark:text-slate-400">{t('map.attribution')}</p>
           {data.data.unmapped > 0 && (
             <p className="text-sm text-slate-700 dark:text-slate-300">

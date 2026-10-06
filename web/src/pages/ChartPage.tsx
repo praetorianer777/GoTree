@@ -6,6 +6,7 @@ import { getPerson, getTree } from '../api/endpoints'
 import type { PersonRef } from '../api/types'
 import { bounds, photoUrl } from '../chart/geometry'
 import { WallChart } from '../chart/WallChart'
+import { chartThemes, type ChartThemeName } from '../chart/themes'
 import { fitChart, MIN_READABLE_PT, type Orientation, type PaperName, papers } from '../chart/paper'
 import { Button } from '../components/Button'
 import { SelectField } from '../components/Field'
@@ -29,7 +30,7 @@ async function asDataUri(url: string): Promise<string> {
 }
 
 export function ChartPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [params, setParams] = useSearchParams()
   const rootId = Number(params.get('root')) || null
   const [view, setView] = useState<TreeView>('pedigree')
@@ -40,6 +41,8 @@ export function ChartPage() {
   const [custom, setCustom] = useState({ w: 600, h: 400 })
   const [orientation, setOrientation] = useState<Orientation>('auto')
   const [title, setTitle] = useState<string | null>(null)
+  const [subtitle, setSubtitle] = useState<string | null>(null)
+  const [theme, setTheme] = useState<ChartThemeName>('classic')
   const [embedded, setEmbedded] = useState<Record<string, string> | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -63,6 +66,14 @@ export function ChartPage() {
   const rootName = root.data ? (fullName(root.data) ?? t('person.unknown')) : ''
   const chartTitle =
     title ?? (rootName ? t(`chart.defaultTitle.${view}` as 'chart.defaultTitle.pedigree', { name: rootName }) : '')
+  const chartSubtitle =
+    subtitle ??
+    (index
+      ? t('chart.defaultSubtitle', {
+          count: index.persons.size,
+          date: new Date().toLocaleDateString(i18n.language, { dateStyle: 'long' }),
+        })
+      : '')
   const size = paper === 'custom' ? custom : papers[paper]
   const fit = layout ? fitChart(bounds(layout).w, bounds(layout).h, size, orientation, chartTitle !== '') : null
   const rootRef: PersonRef | null = root.data ? { ...root.data, birthDate: '', deathDate: '' } : null
@@ -104,6 +115,7 @@ export function ChartPage() {
           onChange={(p) => {
             setParams(p ? { root: String(p.id) } : {}, { replace: true })
             setTitle(null)
+            setSubtitle(null)
           }}
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -165,7 +177,22 @@ export function ChartPage() {
             />
           </div>
         )}
-        <TextField label={t('chart.chartTitle')} value={chartTitle} onChange={(e) => setTitle(e.target.value)} />
+        <div className="grid gap-4 sm:grid-cols-[1fr_1fr_12rem]">
+          <TextField label={t('chart.chartTitle')} value={chartTitle} onChange={(e) => setTitle(e.target.value)} />
+          <TextField
+            label={t('chart.chartSubtitle')}
+            value={chartSubtitle}
+            disabled={chartTitle === ''}
+            onChange={(e) => setSubtitle(e.target.value)}
+          />
+          <SelectField label={t('chart.theme')} value={theme} onChange={(e) => setTheme(e.target.value as ChartThemeName)}>
+            {Object.keys(chartThemes).map((name) => (
+              <option key={name} value={name}>
+                {t(`chart.themes.${name}` as 'chart.themes.classic')}
+              </option>
+            ))}
+          </SelectField>
+        </div>
         <div className="flex flex-wrap gap-x-6">
           <label className="flex min-h-11 items-center gap-2">
             <input type="checkbox" className="size-5" checked={photos} onChange={(e) => setPhotos(e.target.checked)} />
@@ -225,6 +252,8 @@ export function ChartPage() {
             index={index}
             fit={fit}
             title={chartTitle}
+            subtitle={chartSubtitle}
+            theme={theme}
             photos={photos}
             photoSrc={embedded ?? undefined}
           />

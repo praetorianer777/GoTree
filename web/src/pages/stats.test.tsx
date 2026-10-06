@@ -24,7 +24,9 @@ describe('statistics page', () => {
     const lifespan = await screen.findByRole('region', { name: 'Lifespan by decade of birth' })
     expect(within(lifespan).getByRole('row', { name: /1850s 74.5 69–80 2/ })).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: 'Age at marriage' })).getByText('24.5 (2)')).toBeInTheDocument()
-    expect(within(screen.getByRole('region', { name: 'Children per family' })).getByText('10 or more')).toBeInTheDocument()
+    const children = within(screen.getByRole('region', { name: 'Children per family' }))
+    // Buckets past the largest family are left out.
+    expect(children.getAllByRole('row').map((r) => r.textContent)).toEqual(['ChildrenFamilies', '01', '10', '20', '31'])
     expect(screen.getByText('Weber, 5 people')).toBeInTheDocument()
     expect(await axeViolations(container)).toEqual([])
   })

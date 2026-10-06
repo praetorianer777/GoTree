@@ -969,7 +969,16 @@
       "descendants": "Descendants of {{name}}",
       "hourglass": "Family of {{name}}"
     },
-    "printChart": "Print as wall chart"
+    "printChart": "Print as wall chart",
+    "chartSubtitle": "Line under the title",
+    "defaultSubtitle_one": "{{count}} person · made on {{date}}",
+    "defaultSubtitle_other": "{{count}} people · made on {{date}}",
+    "theme": "Style",
+    "themes": {
+      "classic": "Classic",
+      "heritage": "Heritage (sepia, serif)",
+      "modern": "Modern (coloured title band)"
+    }
   },
   "heirloom": {
     "intro": "Objects handed down in the family — a watch, a chest, a family Bible — with who held them and how they got them.",
@@ -1027,7 +1036,6 @@
   },
   "stats": {
     "intro": "Figures about the people in the tree. Each chart has the numbers next to it.",
-    "summary": "{{persons}} people, {{families}} families; {{withLifespan}} with a known age at death.",
     "empty": "Not enough dates yet for this.",
     "lifespan": "Lifespan by decade of birth",
     "lifespanCaption": "Average age at death of people born in each decade; the range shows the youngest and the oldest.",
@@ -1059,7 +1067,11 @@
     "men": "Boys",
     "women": "Girls",
     "name": "Name",
-    "count": "Count"
+    "count": "Count",
+    "tilePeople": "People",
+    "tileFamilies": "Families",
+    "tileLifespan": "With known age at death",
+    "tileChildren": "Children per family"
   },
   "map": {
     "intro": "Watch where the family lived over time. People appear at the places of their dated events — birth, residences, census, emigration, marriage, death — and move on with each event.",
@@ -1081,6 +1093,9 @@
     "attribution": "Map tiles © OpenStreetMap contributors; loading them sends a request to openstreetmap.org.",
     "mapLabel": "Map of where people lived in {{year}}",
     "status_one": "{{count}} person on the map in {{year}}.",
-    "status_other": "{{count}} people on the map in {{year}}."
+    "status_other": "{{count}} people on the map in {{year}}.",
+    "legendMarker": "People at a place",
+    "legendApproximate": "Place shown at an enclosing place",
+    "legendTrail": "Moves so far; older ones fade"
   }
 }

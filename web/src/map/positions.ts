@@ -40,3 +40,52 @@ export function positionsAt(data: MapData, y: number): Map<number, number[]> {
   }
   return out
 }
+
+export interface Trail {
+  from: number
+  to: number
+  /** How many of the people on the map made this move. */
+  count: number
+  /** The year of the latest such move. */
+  last: number
+}
+
+/**
+ * The moves between places that the people on the map at the end of a
+ * year have made so far, merged per pair of places.
+ */
+export function trailsUntil(data: MapData, y: number, positions = positionsAt(data, y)): Trail[] {
+  const shown = new Set([...positions.values()].flat())
+  const limit = y * 10000 + 1231
+  const out = new Map<string, Trail>()
+  for (const t of data.tracks) {
+    if (!shown.has(t.personId)) continue
+    let prev: number | undefined
+    for (const p of t.points) {
+      if (p.key > limit) break
+      if (prev !== undefined && prev !== p.placeId) {
+        const k = `${prev}-${p.placeId}`
+        const trail = out.get(k) ?? { from: prev, to: p.placeId, count: 0, last: 0 }
+        trail.count++
+        trail.last = Math.max(trail.last, year(p.key))
+        out.set(k, trail)
+      }
+      prev = p.placeId
+    }
+  }
+  return [...out.values()]
+}
+
+/**
+ * A gentle arc from a to b. Bending to the left of the direction of travel
+ * keeps a move and its way back apart.
+ */
+export function arc(a: [number, number], b: [number, number], steps = 16): [number, number][] {
+  const [dLat, dLng] = [b[0] - a[0], b[1] - a[1]]
+  const ctrl: [number, number] = [(a[0] + b[0]) / 2 + dLng * 0.18, (a[1] + b[1]) / 2 - dLat * 0.18]
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps
+    const u = 1 - t
+    return [u * u * a[0] + 2 * u * t * ctrl[0] + t * t * b[0], u * u * a[1] + 2 * u * t * ctrl[1] + t * t * b[1]]
+  })
+}
