@@ -728,5 +728,22 @@
     "privateDetails": "Details of living people are private.",
     "start": "Start with {{name}}",
     "openTree": "Show in the tree"
+  },
+  "calendar": {
+    "title": "Calendar of birthdays and anniversaries",
+    "intro": "Subscribe in your phone’s or computer’s calendar to see birthdays, wedding anniversaries and remembrance days of the family. The address is secret: anyone who has it can read these dates, so withdraw it if it gets out.",
+    "new": "New calendar address",
+    "create": "Create address",
+    "labelHint": "Where you use it, e.g. “My phone”. Only you see this.",
+    "includeLiving": "Include living people",
+    "includeLivingHint": "Adds birthdays of living people and anniversaries of living couples. Without it, only the deceased appear.",
+    "withLiving": "with living people",
+    "deceasedOnly": "deceased only",
+    "createdTitle": "Calendar address “{{label}}” is ready",
+    "createdHint": "Add it to your calendar app as a subscription. For safety GoTree keeps only a fingerprint of it, so it cannot be shown again later.",
+    "urlLabel": "Calendar address",
+    "subscribe": "Open in calendar app",
+    "revokeTitle": "Withdraw calendar address",
+    "revokeConfirm": "Withdraw “{{label}}”? Calendars subscribed to it stop getting the dates."
   }
 }

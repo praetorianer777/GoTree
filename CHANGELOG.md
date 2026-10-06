@@ -9,6 +9,10 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Calendar of birthdays, wedding anniversaries and remembrance days to subscribe to in any
+  calendar app, through a secret address that can be withdrawn; living people only when chosen
+  (#25)
+
 - Share links: the owner creates read-only links for relatives without an account, for the whole
   tree or one branch, leaving living people out or showing them by name only, optionally until a
   date; visitors browse people and the tree, and a link can be withdrawn at any time. “On this

@@ -163,17 +163,16 @@ func (s *Store) Authenticate(ctx context.Context, username, password string) (Us
 // CreateSession starts a session for the user in their first tree and
 // returns the token for the cookie.
 func (s *Store) CreateSession(ctx context.Context, userID int64, userAgent string) (string, error) {
-	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
+	token, err := newToken()
+	if err != nil {
 		return "", err
 	}
-	token := base64.RawURLEncoding.EncodeToString(raw)
 	if len(userAgent) > 300 {
 		userAgent = userAgent[:300]
 	}
 
 	var treeID sql.NullInt64
-	err := s.DB.QueryRowContext(ctx, `SELECT tree_id FROM tree_members WHERE user_id = ? ORDER BY tree_id LIMIT 1`, userID).Scan(&treeID)
+	err = s.DB.QueryRowContext(ctx, `SELECT tree_id FROM tree_members WHERE user_id = ? ORDER BY tree_id LIMIT 1`, userID).Scan(&treeID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -254,6 +253,15 @@ func (s *Store) TreeName(ctx context.Context, treeID int64) (string, error) {
 		return "", ErrNotFound
 	}
 	return name, err
+}
+
+// newToken returns 256 random bits, URL-safe.
+func newToken() (string, error) {
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(raw), nil
 }
 
 func hashToken(token string) []byte {

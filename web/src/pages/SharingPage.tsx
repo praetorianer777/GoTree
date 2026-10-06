@@ -13,6 +13,7 @@ import { PageHeading } from '../components/PageHeading'
 import { TextField } from '../components/TextField'
 import { fullName } from '../lib/people'
 import { PersonPicker } from '../people/PersonPicker'
+import { CalendarFeeds } from '../share/CalendarFeeds'
 
 const shareUrl = (token: string) => `${window.location.origin}/share/${token}`
 
@@ -76,6 +77,8 @@ export function SharingPage() {
           ))}
         </ul>
       )}
+
+      {links.isSuccess && <CalendarFeeds />}
 
       {creating && (
         <CreateDialog

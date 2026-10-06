@@ -1,0 +1,79 @@
+package api
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/praetorianer777/gotree/internal/ical"
+	"github.com/praetorianer777/gotree/internal/store"
+)
+
+func (s *Server) calendarFeedRoutes(r chi.Router) {
+	r.Get("/calendar-feeds", s.listCalendarFeeds)
+	r.Post("/calendar-feeds", s.createCalendarFeed)
+	r.Delete("/calendar-feeds/{id}", s.revokeCalendarFeed)
+}
+
+func (s *Server) listCalendarFeeds(w http.ResponseWriter, r *http.Request) {
+	feeds, err := s.Store.ListCalendarFeeds(r.Context(), actorFrom(r))
+	s.respond(w, http.StatusOK, feeds, err)
+}
+
+func (s *Server) createCalendarFeed(w http.ResponseWriter, r *http.Request) {
+	var in store.CalendarFeedInput
+	if !decode(w, r, &in) {
+		return
+	}
+	feed, err := s.Store.CreateCalendarFeed(r.Context(), actorFrom(r), in)
+	s.respond(w, http.StatusCreated, feed, err)
+}
+
+func (s *Server) revokeCalendarFeed(w http.ResponseWriter, r *http.Request) {
+	if id, ok := pathID(w, r, "id"); ok {
+		s.noContent(w, s.Store.RevokeCalendarFeed(r.Context(), actorFrom(r), id))
+	}
+}
+
+// icalFeed serves /ical/{token}.ics. Calendar apps cannot log in, so the
+// token in the URL is the credential.
+func (s *Server) icalFeed(w http.ResponseWriter, r *http.Request) {
+	token, ok := strings.CutSuffix(chi.URLParam(r, "file"), ".ics")
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	cal, err := s.Store.CalendarByToken(r.Context(), token)
+	if errors.Is(err, store.ErrNotFound) {
+		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		s.Log.Error("calendar feed", "err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	out := ical.Calendar{Name: cal.TreeName}
+	from := fmt.Sprintf("From the family tree “%s” in GoTree.", cal.TreeName)
+	for _, e := range cal.Entries {
+		names := strings.Join(e.Names, " & ")
+		var summary string
+		switch e.Kind {
+		case "BIRT":
+			summary = fmt.Sprintf("Birthday: %s (born %d)", names, e.Year)
+		case "MARR":
+			summary = fmt.Sprintf("Wedding anniversary: %s (%d)", names, e.Year)
+		default:
+			summary = fmt.Sprintf("Remembrance: %s (died %d)", names, e.Year)
+		}
+		out.Events = append(out.Events, ical.Event{UID: e.UID, Summary: summary, Description: from, Year: e.Year, Month: e.Month, Day: e.Day})
+	}
+	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
+	w.Header().Set("Cache-Control", "private, max-age=3600")
+	w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+	if err := ical.Write(w, out, s.Store.Now()); err != nil {
+		s.Log.Error("calendar feed", "err", err)
+	}
+}

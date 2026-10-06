@@ -67,3 +67,27 @@ test('share a branch read-only and withdraw the link', async ({ page, browser })
   await expect(visitor.getByRole('heading', { name: 'This link does not work' })).toBeVisible()
   await visitor.context().close()
 })
+
+test('subscribe to the birthday calendar', async ({ page, playwright }) => {
+  await login(page)
+  const surname = unique('Cal', page)
+  const anna = await (await page.request.post('/api/persons', { data: { givenNames: 'Anna', surname } })).json()
+  await page.request.post('/api/events', { data: { personId: anna.id, type: 'BIRT', date: '12 MAR 1850' } })
+  await page.request.post('/api/events', { data: { personId: anna.id, type: 'DEAT', date: '1920' } })
+
+  await page.goto('/sharing')
+  await page.getByRole('button', { name: '+ New calendar address' }).click()
+  const dialog = page.getByRole('dialog', { name: 'New calendar address' })
+  await dialog.getByLabel(/^Name/).fill(`Phone ${surname}`)
+  await dialog.getByRole('button', { name: /Create address/ }).click()
+  const url = await page.getByLabel('Calendar address', { exact: true }).inputValue()
+  expect(url).toMatch(/\/ical\/[A-Za-z0-9_-]{40,}\.ics$/)
+  await expectAccessible(page)
+
+  // A calendar app has no cookies.
+  const app = await playwright.request.newContext()
+  const feed = await app.get(url)
+  expect(feed.headers()['content-type']).toContain('text/calendar')
+  expect(await feed.text()).toContain(`SUMMARY:Birthday: Anna ${surname} (born 1850)`)
+  await app.dispose()
+})

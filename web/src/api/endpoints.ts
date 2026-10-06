@@ -31,6 +31,7 @@ import type {
   ShareInfo,
   ShareLink,
   ShareLinkInput,
+  CalendarFeed,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -130,3 +131,8 @@ export const shareApi = (token: string) => {
       getJSON<DayReport>(`${base}/onthisday?${qs({ month, day })}`, signal),
   }
 }
+
+export const listCalendarFeeds = (signal?: AbortSignal) => getJSON<CalendarFeed[]>('/calendar-feeds', signal)
+export const createCalendarFeed = (input: { label: string; includeLiving: boolean }) =>
+  postJSON<CalendarFeed>('/calendar-feeds', input)
+export const revokeCalendarFeed = (id: number) => del(`/calendar-feeds/${id}`)
