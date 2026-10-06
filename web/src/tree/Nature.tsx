@@ -1,4 +1,4 @@
-import { LEAF_PATH, type Blob, type BranchShape, type Leaf, type Palette, type TrunkShape } from './branches'
+import { LEAF_PATH, type BranchShape, type Canopy, type Leaf, type Palette, type TrunkShape } from './branches'
 
 export function Leaves({ leaves, palette }: { leaves: Leaf[]; palette: Palette }) {
   return (
@@ -57,12 +57,16 @@ export function TrunkArt({ shape, palette }: { shape: TrunkShape; palette: Palet
   )
 }
 
-export function CanopyArt({ blobs, palette }: { blobs: Blob[]; palette: Palette }) {
+export function CanopyArt({ canopy, palette }: { canopy: Canopy; palette: Palette }) {
   return (
-    <g aria-hidden="true" opacity={palette.canopyOpacity}>
-      {blobs.map((b) => (
-        <ellipse key={`${b.cx},${b.cy}`} cx={b.cx} cy={b.cy} rx={b.rx} ry={b.ry} fill={palette.canopy[b.shade]} />
+    <g aria-hidden="true">
+      {canopy.shadows.map((d) => (
+        <path key={d} d={d} fill={palette.canopyShadow} />
       ))}
+      {canopy.bodies.map((d) => (
+        <path key={d} d={d} fill={palette.canopy} />
+      ))}
+      <Leaves leaves={canopy.leaves} palette={palette} />
     </g>
   )
 }

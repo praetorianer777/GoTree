@@ -16,9 +16,9 @@ export interface Leaf {
 }
 
 export interface Palette {
-  /** Soft colours of the crown behind the cards, back to front. */
-  canopy: string[]
-  canopyOpacity: number
+  /** The crown behind the cards: its shadowed underside and its body. */
+  canopyShadow: string
+  canopy: string
   bark: string
   barkDark: string
   barkLight: string
@@ -29,8 +29,8 @@ export interface Palette {
 }
 
 export const lightPalette: Palette = {
-  canopy: ['#c9dfae', '#b6d396', '#a3c781'],
-  canopyOpacity: 0.55,
+  canopyShadow: '#8fb873',
+  canopy: '#b5d398',
   bark: '#6b4a2b',
   barkDark: '#45301b',
   barkLight: '#9a7048',
@@ -41,8 +41,8 @@ export const lightPalette: Palette = {
 }
 
 export const darkPalette: Palette = {
-  canopy: ['#16291a', '#1b3220', '#203a25'],
-  canopyOpacity: 0.8,
+  canopyShadow: '#132617',
+  canopy: '#1d3823',
   bark: '#8a6240',
   barkDark: '#5e4128',
   barkLight: '#b58a5e',
@@ -312,45 +312,76 @@ export function growTrunk(seed: string, topWidth = 26): TrunkShape {
   return { trunk: `${left} ${right}`, lit, bark, roots, ground, blades }
 }
 
-export interface Blob {
-  cx: number
-  cy: number
-  rx: number
-  ry: number
-  /** Index into the palette's canopy colours. */
-  shade: number
+export interface Canopy {
+  /** The darker underside of each clump, drawn first. */
+  shadows: string[]
+  bodies: string[]
+  /** Single leaves along the rims, where the light catches them. */
+  leaves: Leaf[]
 }
 
-const CANOPY_PAD = 60
+const CANOPY_PAD = 40
 
 /**
- * Soft clouds of foliage behind every card, so the generations sit in a
- * crown, relative to the canopy node's top left corner.
+ * A clump of foliage around a card: a rounded outline with a scalloped
+ * edge, the way leaf masses are drawn, a little irregular.
  */
-export function growCanopy(layout: TreeLayout, origin: Point): Blob[] {
-  const out: Blob[] = []
+function clump(c: Point, a: number, b: number, rnd: () => number, dy = 0): { outline: string; rim: Point[] } {
+  const perimeter = Math.PI * (a + b)
+  const n = Math.max(12, Math.round(perimeter / 15))
+  const rim: Point[] = []
+  for (let i = 0; i < n; i++) {
+    const t = (i / n) * Math.PI * 2
+    // A superellipse hugs a wide card better than an ellipse.
+    const cos = Math.cos(t)
+    const sin = Math.sin(t)
+    const k = 0.6
+    const wobble = 1 + (rnd() - 0.5) * 0.12
+    rim.push({
+      x: c.x + a * Math.sign(cos) * Math.abs(cos) ** k * wobble,
+      y: c.y + dy + b * Math.sign(sin) * Math.abs(sin) ** k * wobble,
+    })
+  }
+  const first = at(rim, 0)
+  const arcs = rim.map((p, i) => {
+    const q = at(rim, (i + 1) % n)
+    const r = r1((Math.hypot(q.x - p.x, q.y - p.y) / 2) * (1.05 + rnd() * 0.3))
+    return `A ${r} ${r} 0 0 1 ${r1(q.x)} ${r1(q.y)}`
+  })
+  return { outline: `M ${r1(first.x)} ${r1(first.y)} ${arcs.join(' ')} Z`, rim }
+}
+
+/**
+ * Foliage behind every card, relative to the canopy node's top left
+ * corner. Clumps of neighbouring cards run into each other and form one
+ * crown.
+ */
+export function growCanopy(layout: TreeLayout, origin: Point): Canopy {
+  const out: Canopy = { shadows: [], bodies: [], leaves: [] }
   for (const n of layout.nodes) {
     if (n.kind !== 'person' && n.kind !== 'unknown') continue
     const rnd = random(`canopy-${n.id}`)
-    const cx = n.x + n.w / 2 - origin.x
-    const cy = n.y + n.h / 2 - origin.y
-    for (const [dx, dy, shade] of [
-      [-0.32, -0.15, 0],
-      [0.34, -0.25, 0],
-      [0, -0.55, 1],
-      [-0.12, 0.35, 1],
-      [0.2, 0.1, 2],
-    ] as const) {
-      out.push({
-        cx: r1(cx + dx * n.w + (rnd() - 0.5) * 16),
-        cy: r1(cy + dy * n.h * 1.6 + (rnd() - 0.5) * 10),
-        rx: r1(n.w * (0.34 + rnd() * 0.12)),
-        ry: r1(n.h * (0.75 + rnd() * 0.3)),
-        shade,
+    const c = { x: n.x + n.w / 2 - origin.x, y: n.y + n.h / 2 - origin.y - 6 }
+    const a = n.w / 2 + 20
+    const b = n.h / 2 + 22
+    out.shadows.push(clump(c, a, b, rnd, 7).outline)
+    const body = clump(c, a - 3, b - 3, rnd)
+    out.bodies.push(body.outline)
+    for (const p of body.rim) {
+      if (rnd() < 0.45) continue
+      // Light comes from above: lighter leaves at the top of the clump.
+      const top = (c.y - p.y) / b
+      out.leaves.push({
+        x: r1(p.x + (rnd() - 0.5) * 6),
+        y: r1(p.y + (rnd() - 0.5) * 6),
+        angle: Math.round((Math.atan2(p.y - c.y, p.x - c.x) * 180) / Math.PI + (rnd() - 0.5) * 70),
+        scale: Math.round((0.8 + rnd() * 0.5) * 100) / 100,
+        shade: Math.max(0, Math.min(4, Math.round(2 + top * 2 + (rnd() - 0.5)))),
       })
     }
   }
-  return out.sort((a, b) => a.shade - b.shade)
+  out.leaves.sort((p, q) => p.shade - q.shade)
+  return out
 }
 
 /**

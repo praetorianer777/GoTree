@@ -126,7 +126,7 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
         </g>
       )}
       <g transform={`translate(${fit.x} ${fit.y}) scale(${fit.scale}) translate(${-b.minX} ${-b.minY})`}>
-        {th.leafy && <CanopyArt blobs={growCanopy(layout, { x: 0, y: 0 })} palette={lightPalette} />}
+        {th.leafy && <CanopyArt canopy={growCanopy(layout, { x: 0, y: 0 })} palette={lightPalette} />}
         <g fill="none" stroke={th.line} strokeWidth={2} strokeLinecap="round">
           {layout.edges.map((e) => {
             const s = byId.get(e.source)

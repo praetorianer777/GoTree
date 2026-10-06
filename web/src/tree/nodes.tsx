@@ -5,7 +5,7 @@ import { fullName, lifespan } from '../lib/people'
 import { Avatar } from '../media/Avatar'
 import { useMemo } from 'react'
 import { useDark } from '../lib/theme'
-import { type Blob, darkPalette, growTrunk, HEART_PATH, LEAF_PATH, lightPalette, TRUNK } from './branches'
+import { type Canopy, darkPalette, growTrunk, HEART_PATH, LEAF_PATH, lightPalette, TRUNK } from './branches'
 import { CanopyArt, TrunkArt } from './Nature'
 import type { TreeLook } from './nodeTypes'
 
@@ -216,7 +216,7 @@ export function TrunkNode() {
 }
 
 export interface CanopyNodeData extends Record<string, unknown> {
-  blobs: Blob[]
+  canopy: Canopy
   w: number
   h: number
 }
@@ -225,7 +225,7 @@ export function CanopyNode({ data }: NodeProps<Node<CanopyNodeData>>) {
   const dark = useDark()
   return (
     <svg aria-hidden="true" width={data.w} height={data.h} className="pointer-events-none overflow-visible">
-      <CanopyArt blobs={data.blobs} palette={dark ? darkPalette : lightPalette} />
+      <CanopyArt canopy={data.canopy} palette={dark ? darkPalette : lightPalette} />
     </svg>
   )
 }

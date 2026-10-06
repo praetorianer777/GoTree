@@ -115,7 +115,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
     () =>
       (look === 'leafy' ? withTrunk(layout) : layout).nodes.map((n): Node => {
         if (n.kind === 'canopy') {
-          const data: CanopyNodeData = { blobs: growCanopy(layout, { x: n.x, y: n.y }), w: n.w, h: n.h }
+          const data: CanopyNodeData = { canopy: growCanopy(layout, { x: n.x, y: n.y }), w: n.w, h: n.h }
           return {
             id: n.id,
             type: n.kind,
