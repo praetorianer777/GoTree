@@ -7,7 +7,7 @@ export const GAP_X = 24
 export const ROW_H = 140
 export const JUNCTION = 12
 
-export type NodeKind = 'person' | 'junction' | 'unknown' | 'repeat' | 'trunk' | 'canopy'
+export type NodeKind = 'person' | 'junction' | 'unknown' | 'repeat'
 
 /** A positioned node; x/y is the top-left corner, as React Flow expects. */
 export interface LayoutNode {

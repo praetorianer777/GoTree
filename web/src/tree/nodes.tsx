@@ -3,10 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { PersonRef } from '../api/types'
 import { fullName, lifespan } from '../lib/people'
 import { Avatar } from '../media/Avatar'
-import { useMemo } from 'react'
-import { useDark } from '../lib/theme'
-import { type Canopy, darkPalette, growTrunk, HEART_PATH, LEAF_PATH, lightPalette, TRUNK } from './branches'
-import { CanopyArt, TrunkArt } from './Nature'
+import { HEART_PATH } from './vine'
 import type { TreeLook } from './nodeTypes'
 
 export interface PersonNodeData extends Record<string, unknown> {
@@ -86,10 +83,8 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
           data.selected ? 'ring-4 ring-brand-500/60' : '',
         ].join(' ')}
       >
-        {leafy ? (
-          <Sprig />
-        ) : (
-          accent[p.sex] && <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-1.5 ${accent[p.sex]}`} />
+        {!leafy && accent[p.sex] && (
+          <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-1.5 ${accent[p.sex]}`} />
         )}
         <span
           className={`rounded-full ring-2 ${leafy ? 'ring-[#c9b48f] dark:ring-[#6e583c]' : 'ring-white dark:ring-slate-800'}`}
@@ -119,20 +114,6 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
         </span>
       </button>
     </>
-  )
-}
-
-/** A few leaves on the card's top edge, as if it hung in the foliage. */
-function Sprig() {
-  const p = lightPalette
-  return (
-    <svg aria-hidden="true" viewBox="-17 -13 34 16" className="pointer-events-none absolute -top-3 right-5 h-5 w-10">
-      <g stroke={p.leafEdge} strokeWidth={0.5}>
-        <path d={LEAF_PATH} transform="rotate(-155) scale(0.9)" fill={p.leaves[1]} />
-        <path d={LEAF_PATH} transform="rotate(-25) scale(1)" fill={p.leaves[3]} />
-        <path d={LEAF_PATH} transform="rotate(-95) scale(0.75)" fill={p.leaves[4]} />
-      </g>
-    </svg>
   )
 }
 
@@ -195,37 +176,5 @@ export function RepeatNode({ data }: NodeProps<Node<RepeatNodeData>>) {
         </span>
       </button>
     </>
-  )
-}
-
-
-export function TrunkNode() {
-  const dark = useDark()
-  const shape = useMemo(() => growTrunk('trunk'), [])
-  return (
-    <svg
-      aria-hidden="true"
-      width={TRUNK.w}
-      height={TRUNK.h}
-      viewBox={`${-TRUNK.w / 2} 0 ${TRUNK.w} ${TRUNK.h}`}
-      className="pointer-events-none overflow-visible"
-    >
-      <TrunkArt shape={shape} palette={dark ? darkPalette : lightPalette} />
-    </svg>
-  )
-}
-
-export interface CanopyNodeData extends Record<string, unknown> {
-  canopy: Canopy
-  w: number
-  h: number
-}
-
-export function CanopyNode({ data }: NodeProps<Node<CanopyNodeData>>) {
-  const dark = useDark()
-  return (
-    <svg aria-hidden="true" width={data.w} height={data.h} className="pointer-events-none overflow-visible">
-      <CanopyArt canopy={data.canopy} palette={dark ? darkPalette : lightPalette} />
-    </svg>
   )
 }

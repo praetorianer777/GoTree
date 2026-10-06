@@ -14,7 +14,6 @@ import { PageHeading } from '../components/PageHeading'
 import { TextField } from '../components/TextField'
 import { fullName } from '../lib/people'
 import { PersonPicker } from '../people/PersonPicker'
-import { withTrunk } from '../tree/branches'
 import { layoutTree, type TreeView } from '../tree/layout'
 import { indexGraph } from '../tree/model'
 
@@ -60,11 +59,10 @@ export function ChartPage() {
     enabled: rootId !== null,
   })
   const index = useMemo(() => (tree.data ? indexGraph(tree.data) : null), [tree.data])
-  const layout = useMemo(() => {
-    if (!index) return null
-    const l = layoutTree(index, { view, generations, bloodOnly })
-    return chartThemes[theme].leafy ? withTrunk(l) : l
-  }, [index, view, generations, bloodOnly, theme])
+  const layout = useMemo(
+    () => (index ? layoutTree(index, { view, generations, bloodOnly }) : null),
+    [index, view, generations, bloodOnly],
+  )
   const rootName = root.data ? (fullName(root.data) ?? t('person.unknown')) : ''
   const chartTitle =
     title ?? (rootName ? t(`chart.defaultTitle.${view}` as 'chart.defaultTitle.pedigree', { name: rootName }) : '')

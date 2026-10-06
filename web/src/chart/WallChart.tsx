@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { fullName, lifespan } from '../lib/people'
 import type { LayoutNode, TreeLayout } from '../tree/layout'
 import type { TreeIndex } from '../tree/model'
-import { branchEnds, growBranch, growCanopy, growTrunk, HEART_PATH, LEAF_PATH, lightPalette } from '../tree/branches'
-import { BranchArt, CanopyArt, TextureDefs, TrunkArt } from '../tree/Nature'
+import { VineArt } from '../tree/Nature'
+import { growVine, HEART_PATH, lightPalette, VINE_LEAF } from '../tree/vine'
 import { bounds, elbow, photoUrl } from './geometry'
 import { MARGIN_MM, TITLE_MM, type Fit } from './paper'
 import { chartThemes, type ChartThemeName } from './themes'
@@ -44,8 +44,6 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
   const people = layout.nodes.filter((n) => n.kind === 'person').length
   const th = chartThemes[theme]
   const cx = fit.paperW / 2
-  const rootNode = layout.nodes.find((n) => n.root)
-  const rootY = rootNode ? center(rootNode).y : 0
   const rx = (n: LayoutNode) => (th.leafy ? n.h / 2 : 12)
 
   return (
@@ -61,7 +59,6 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
       className="h-auto w-full bg-white"
     >
       <title>{title}</title>
-      {th.leafy && <TextureDefs palette={lightPalette} />}
       <rect width={fit.paperW} height={fit.paperH} fill={th.paper} />
       {th.frame && (
         <g fill="none" stroke={th.line}>
@@ -102,14 +99,14 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
               {th.leafy ? (
                 <g stroke="none">
                   <path
-                    d={LEAF_PATH}
-                    transform={`translate(${cx} ${MARGIN_MM + 17.5}) rotate(-160) scale(0.25)`}
+                    d={VINE_LEAF}
+                    transform={`translate(${cx} ${MARGIN_MM + 17.5}) rotate(-160) scale(0.35)`}
                     fill={lightPalette.leaves[1]}
                   />
                   <path
-                    d={LEAF_PATH}
-                    transform={`translate(${cx} ${MARGIN_MM + 17.5}) rotate(-20) scale(0.25)`}
-                    fill={lightPalette.leaves[3]}
+                    d={VINE_LEAF}
+                    transform={`translate(${cx} ${MARGIN_MM + 17.5}) rotate(-20) scale(0.35)`}
+                    fill={lightPalette.leaves[2]}
                   />
                 </g>
               ) : (
@@ -136,30 +133,14 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
             const upper = { x: center(top).x, y: top.y + top.h }
             const lower = { x: center(bottom).x, y: bottom.y }
             if (!th.leafy) return <path key={e.id} d={elbow(upper.x, upper.y, lower.x, lower.y)} />
-            const { from, to, wFrom, wTo } = branchEnds(
-              upper,
-              lower,
-              top.kind === 'junction',
-              bottom.kind === 'junction',
-              rootY,
-            )
             return (
               <g key={e.id} stroke="none">
-                <BranchArt shape={growBranch(from, to, wFrom, wTo, e.id)} palette={lightPalette} />
+                <VineArt vine={growVine(upper, lower, e.id)} palette={lightPalette} />
               </g>
             )
           })}
         </g>
-        {th.leafy && <CanopyArt canopy={growCanopy(layout, { x: 0, y: 0 })} palette={lightPalette} />}
         {layout.nodes.map((n) => {
-          if (n.kind === 'canopy') return null
-          if (n.kind === 'trunk') {
-            return (
-              <g key={n.id} transform={`translate(${n.x + n.w / 2} ${n.y})`}>
-                <TrunkArt shape={growTrunk('trunk')} palette={lightPalette} />
-              </g>
-            )
-          }
           if (n.kind === 'junction') {
             const c = center(n)
             if (th.leafy) {
