@@ -24,6 +24,7 @@ import { Gallery } from '../media/Gallery'
 import { UploadButton } from '../media/UploadButton'
 import { FindingList } from '../quality/FindingList'
 import { ResearchPanel } from '../research/ResearchPanel'
+import { PersonHeirlooms } from '../heirlooms/PersonHeirlooms'
 
 type Open =
   | { kind: 'edit' }
@@ -238,6 +239,10 @@ export function PersonPage() {
 
       <Section title={t('media.section')} actions={<UploadButton owner={{ entityType: 'person', entityId: p.id }} />}>
         <Gallery owner={{ entityType: 'person', entityId: p.id }} />
+      </Section>
+
+      <Section title={t('heirloom.forPerson')}>
+        <PersonHeirlooms person={{ ...p, birthDate: '', deathDate: '' }} />
       </Section>
 
       <Section title={t('research.forPerson')}>

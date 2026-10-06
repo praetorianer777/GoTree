@@ -222,6 +222,7 @@ func clearTree(ctx context.Context, tx *sql.Tx, treeID int64) error {
 		`DELETE FROM events WHERE tree_id = ?`,
 		`DELETE FROM families WHERE tree_id = ?`,
 		`UPDATE persons SET portrait_media_id = NULL, portrait_region_id = NULL WHERE tree_id = ?`,
+		`DELETE FROM heirlooms WHERE tree_id = ?`,
 		`DELETE FROM persons WHERE tree_id = ?`,
 		`DELETE FROM citations WHERE tree_id = ?`,
 		`DELETE FROM sources WHERE tree_id = ?`,
@@ -313,6 +314,11 @@ func (im *importer) run(ctx context.Context) error {
 			return err
 		}
 	}
+	for _, r := range byTag["_HEIRLOOM"] {
+		if err := im.heirloom(ctx, r); err != nil {
+			return err
+		}
+	}
 	for _, p := range im.deferred {
 		pid, ok := im.persons[p.xref]
 		if !ok {
@@ -326,7 +332,7 @@ func (im *importer) run(ctx context.Context) error {
 	}
 	for tag, recs := range byTag {
 		switch tag {
-		case "INDI", "FAM", "SOUR", "REPO", "NOTE", "SNOTE":
+		case "INDI", "FAM", "SOUR", "REPO", "NOTE", "SNOTE", "_HEIRLOOM":
 		case "SUBM", "SUBN":
 			for range recs {
 				im.tag(tag, TagDropped, "GoTree writes its own submitter")
@@ -1069,5 +1075,122 @@ func (im *importer) family(ctx context.Context, r *gedcom.Node) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// dateText is a DATE line as GoTree stores it: the value, or the phrase
+// a GEDCOM 7 date carries instead.
+func dateText(n *gedcom.Node) string {
+	if v := strings.TrimSpace(n.Value); v != "" {
+		return canonicalDate(v)
+	}
+	if ph := n.Text("PHRASE"); ph != "" {
+		return "(" + ph + ")"
+	}
+	return ""
+}
+
+// heirloom reads a GoTree _HEIRLOOM record (docs/gedcom-extensions.md).
+func (im *importer) heirloom(ctx context.Context, r *gedcom.Node) error {
+	const path = "_HEIRLOOM"
+	in := HeirloomInput{Kind: "other"}
+	var place sql.NullInt64
+	var notes []string
+	var citations []*gedcom.Node
+	for _, c := range r.Children {
+		switch c.Tag {
+		case "NAME":
+			in.Name = c.Value
+		case "TYPE":
+			if oneOf(c.Value, heirloomKinds...) {
+				in.Kind = c.Value
+			}
+		case "_DESC":
+			in.Description = c.Value
+		case "DATE":
+			in.MadeDate = dateText(c)
+		case "PLAC":
+			// Heirlooms have nowhere to keep unknown lines; place
+			// substructures GoTree does not read are lost here.
+			var ignored []keptNode
+			p, err := im.place(ctx, c, path, &ignored)
+			if err != nil {
+				return err
+			}
+			place = p
+			continue
+		case "_LOC":
+			in.CurrentLocation = c.Value
+		case "NOTE", "SNOTE":
+			notes = append(notes, im.noteText(c))
+		case "_CUST":
+			cust := CustodyInput{How: "other"}
+			if c.Pointer != "" {
+				if id, ok := im.persons[c.Pointer]; ok {
+					cust.PersonID = &id
+				} else {
+					im.broken(c, "the holder")
+				}
+			}
+			for _, sub := range c.Children {
+				switch sub.Tag {
+				case "_FROM":
+					cust.FromDate = sub.Value
+				case "_TO":
+					cust.ToDate = sub.Value
+				case "TYPE":
+					if oneOf(sub.Value, custodyWays...) {
+						cust.How = sub.Value
+					}
+				case "NOTE":
+					cust.Notes = sub.Value
+				default:
+					im.tag(path+"._CUST."+sub.Tag, TagDropped, "not part of an heirloom's custody in GoTree")
+					continue
+				}
+				im.mapped(path + "._CUST." + sub.Tag)
+			}
+			if cust.PersonID == nil && cust.Notes == "" {
+				cust.Notes = "?"
+			}
+			in.Custody = append(in.Custody, cust)
+		case "SOUR":
+			citations = append(citations, c)
+			continue
+		default:
+			im.tag(path+"."+c.Tag, TagDropped, "not part of an heirloom in GoTree")
+			continue
+		}
+		im.mapped(path + "." + c.Tag)
+	}
+	in.Notes = joinNotes(notes)
+	if place.Valid {
+		in.OriginPlaceID = &place.Int64
+	}
+	if strings.TrimSpace(in.Name) == "" {
+		in.Name = "?"
+	}
+	in.normalize()
+	now := im.s.now()
+	res, err := im.tx.ExecContext(ctx, `
+		INSERT INTO heirlooms (tree_id, name, kind, description, made_date_raw, made_date_sort, origin_place_id, current_location, notes,
+			gedcom_xref, created_at, updated_at, created_by, updated_by)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		im.a.TreeID, truncate(in.Name, 200), in.Kind, in.Description, in.MadeDate, madeSort(in.MadeDate), nullIDPtr(in.OriginPlaceID),
+		in.CurrentLocation, in.Notes, r.Xref, now, now, nullID(im.a.UserID), nullID(im.a.UserID))
+	if err != nil {
+		return err
+	}
+	id, _ := res.LastInsertId()
+	if err := writeCustody(ctx, im.tx, id, in.Custody); err != nil {
+		return err
+	}
+	for _, c := range citations {
+		if err := im.citation(ctx, path, c, "heirloom", id); err != nil {
+			return err
+		}
+	}
+	im.mapped(path)
+	im.report.Counts["heirlooms"]++
 	return nil
 }

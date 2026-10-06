@@ -43,6 +43,9 @@ import type {
   Transcription,
   TranscriptionInput,
   TranscriptionRow,
+  Heirloom,
+  HeirloomInput,
+  HeirloomRef,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -84,7 +87,7 @@ export const listRepositories = (q: string, signal?: AbortSignal) =>
 export const createRepository = (name: string) =>
   postJSON<Repository>('/repositories', { name, address: '', url: '', notes: '' })
 
-export type MediaOwner = { entityType: 'person' | 'event' | 'family' | 'source'; entityId: number }
+export type MediaOwner = { entityType: 'person' | 'event' | 'family' | 'source' | 'heirloom'; entityId: number }
 
 export const listMedia = (owner: MediaOwner | null, signal?: AbortSignal) =>
   getJSON<MediaRef[]>(`/media${owner ? `?${qs(owner)}` : '?limit=200'}`, signal)
@@ -175,3 +178,10 @@ export const deleteTranscription = (id: number) => del(`/transcriptions/${id}`)
 export const applyTranscription = (id: number) => postJSON<ApplyResult>(`/transcriptions/${id}/apply`, {})
 export const matchRows = (date: string, rows: TranscriptionRow[]) =>
   postJSON<MatchCandidate[][]>('/transcriptions/match', { date, rows })
+
+export const listHeirlooms = (f: { q?: string; person?: number }, signal?: AbortSignal) =>
+  getJSON<HeirloomRef[]>(`/heirlooms?${qs({ q: f.q ?? '', person: f.person ?? 0 })}`, signal)
+export const getHeirloom = (id: number, signal?: AbortSignal) => getJSON<Heirloom>(`/heirlooms/${id}`, signal)
+export const createHeirloom = (input: HeirloomInput) => postJSON<Heirloom>('/heirlooms', input)
+export const updateHeirloom = (id: number, input: HeirloomInput) => putJSON<Heirloom>(`/heirlooms/${id}`, input)
+export const deleteHeirloom = (id: number) => del(`/heirlooms/${id}`)

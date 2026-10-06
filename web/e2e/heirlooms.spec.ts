@@ -1,0 +1,45 @@
+import { expect, test } from '@playwright/test'
+import { expectAccessible, login, unique } from './helpers'
+
+test('record an heirloom from a person and pass it on', async ({ page }) => {
+  await login(page)
+  const surname = unique('Heir', page)
+  const anna = await (await page.request.post('/api/persons', { data: { givenNames: 'Anna', surname, sex: 'F' } })).json()
+  const paul = await (await page.request.post('/api/persons', { data: { givenNames: 'Paul', surname, sex: 'M' } })).json()
+
+  await page.goto(`/people/${anna.id}`)
+  const section = page.getByRole('region', { name: 'Heirlooms' })
+  await section.getByRole('button', { name: '+ New heirloom' }).click()
+  const dialog = page.getByRole('dialog', { name: 'New heirloom' })
+  await dialog.getByLabel('Name', { exact: true }).fill(`Watch ${surname}`)
+  await dialog.getByLabel('Kind').selectOption('jewellery')
+  await dialog.getByLabel('Made').fill('abt 1880')
+  const first = dialog.getByRole('group', { name: 'Holder 1' })
+  await expect(first.getByText(`Anna ${surname}`)).toBeVisible()
+  await first.getByLabel('From').fill('1920')
+  await first.getByLabel('Until').fill('1965')
+  await dialog.getByRole('button', { name: '+ Add a holder' }).click()
+  const second = dialog.getByRole('group', { name: 'Holder 2' })
+  await second.getByRole('searchbox', { name: 'Person' }).fill(`Paul ${surname}`)
+  await second.getByRole('button', { name: new RegExp(`^Paul ${surname}`) }).click()
+  await second.getByLabel('From').fill('1965')
+  await second.getByLabel('How they got it').selectOption('gift')
+  await expectAccessible(page)
+  await dialog.getByRole('button', { name: /^Save/ }).click()
+  await expect(dialog).toBeHidden()
+
+  await section.getByRole('link', { name: `Watch ${surname}` }).click()
+  await expect(page.getByRole('heading', { level: 1, name: `Watch ${surname}` })).toBeVisible()
+  await expect(page.getByText('ABT 1880')).toBeVisible()
+  const timeline = page.getByRole('region', { name: 'Who held it' })
+  await expect(timeline.getByRole('listitem')).toHaveCount(2)
+  await expect(timeline.getByText('since 1965 · as a gift')).toBeVisible()
+  await expectAccessible(page)
+
+  await page.goto(`/people/${paul.id}`)
+  await expect(page.getByRole('region', { name: 'Heirlooms' }).getByRole('link', { name: `Watch ${surname}` })).toBeVisible()
+
+  const ged = await (await page.request.get('/api/export/gedcom?version=7.0&privacy=all&format=ged')).text()
+  expect(ged).toContain(`1 NAME Watch ${surname}`)
+  expect(ged).toContain('2 TYPE gift')
+})

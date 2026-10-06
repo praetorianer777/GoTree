@@ -124,7 +124,7 @@ type SourceDetail struct {
 	Citations []Citation `json:"citations"`
 }
 
-var entityTables = map[string]string{"person": "persons", "event": "events", "family": "families"}
+var entityTables = map[string]string{"person": "persons", "event": "events", "family": "families", "heirloom": "heirlooms"}
 
 func (in *RepositoryInput) normalize() {
 	in.Name, in.Address, in.URL, in.Notes = strings.TrimSpace(in.Name), strings.TrimSpace(in.Address), strings.TrimSpace(in.URL), strings.TrimSpace(in.Notes)

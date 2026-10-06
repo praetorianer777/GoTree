@@ -68,6 +68,7 @@ func (s *Server) Handler() http.Handler {
 			s.calendarFeedRoutes(r)
 			s.researchRoutes(r)
 			s.transcriptionRoutes(r)
+			s.heirloomRoutes(r)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {

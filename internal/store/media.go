@@ -121,7 +121,7 @@ type PortraitInput struct {
 	RegionID *int64 `json:"regionId"`
 }
 
-var mediaEntityTables = map[string]string{"person": "persons", "event": "events", "family": "families", "source": "sources"}
+var mediaEntityTables = map[string]string{"person": "persons", "event": "events", "family": "families", "source": "sources", "heirloom": "heirlooms"}
 
 func (s *Store) checkMediaLink(ctx context.Context, q queryer, a Actor, l MediaLinkInput) error {
 	table, ok := mediaEntityTables[l.EntityType]
@@ -302,6 +302,7 @@ func (s *Store) mediaLinks(ctx context.Context, q queryer, a Actor, mediaID int6
 			CASE l.entity_type
 				WHEN 'event' THEN (SELECT type || CASE WHEN custom_label <> '' THEN ':' || custom_label ELSE '' END FROM events WHERE id = l.entity_id)
 				WHEN 'source' THEN (SELECT title FROM sources WHERE id = l.entity_id)
+				WHEN 'heirloom' THEN (SELECT name FROM heirlooms WHERE id = l.entity_id)
 			END
 		FROM media_links l WHERE l.media_id = ? ORDER BY l.entity_type, l.entity_id`, mediaID)
 	if err != nil {
@@ -343,7 +344,7 @@ func (s *Store) mediaLinks(ctx context.Context, q queryer, a Actor, mediaID int6
 		switch l.EntityType {
 		case "event":
 			l.Label = extra[i] + "|" + name
-		case "source":
+		case "source", "heirloom":
 			l.Label = extra[i]
 		default:
 			l.Label = name

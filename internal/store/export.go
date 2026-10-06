@@ -46,7 +46,7 @@ type Export struct {
 }
 
 // extensionTags are GoTree's own tags, declared in a GEDCOM 7 header.
-var extensionTags = []string{"_FREL", "_MILT", "_MREL", "_STAT"}
+var extensionTags = []string{"_CUST", "_DESC", "_FREL", "_FROM", "_HEIRLOOM", "_LOC", "_MILT", "_MREL", "_STAT", "_TO"}
 
 const extensionDocs = "https://github.com/praetorianer777/GoTree/blob/main/docs/gedcom-extensions.md#"
 
@@ -444,6 +444,11 @@ func (ex *exporter) build(ctx context.Context) error {
 		return err
 	}
 	records = append(records, repos...)
+	heirlooms, err := ex.heirloomRecords(ctx)
+	if err != nil {
+		return err
+	}
+	records = append(records, heirlooms...)
 	if ex.opt.WithMedia {
 		objs, err := ex.mediaRecords(ctx)
 		if err != nil {
@@ -922,4 +927,77 @@ func (s *Store) livingAll(ctx context.Context, a Actor) (map[int64]bool, error) 
 		}
 	}
 	return out, rows.Err()
+}
+
+// heirloomRecords writes heirlooms as _HEIRLOOM records (see
+// docs/gedcom-extensions.md). A holder left out for privacy keeps the
+// custody entry without the pointer.
+func (ex *exporter) heirloomRecords(ctx context.Context) ([]*gedcom.Node, error) {
+	rows, err := ex.s.DB.QueryContext(ctx, `
+		SELECT id, name, kind, description, made_date_raw, origin_place_id, current_location, notes
+		FROM heirlooms WHERE tree_id = ? ORDER BY id`, ex.a.TreeID)
+	if err != nil {
+		return nil, err
+	}
+	type heirloom struct {
+		id                                 int64
+		name, kind, desc, made, loc, notes string
+		place                              sql.NullInt64
+	}
+	var list []heirloom
+	for rows.Next() {
+		var h heirloom
+		if err := rows.Scan(&h.id, &h.name, &h.kind, &h.desc, &h.made, &h.place, &h.loc, &h.notes); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		list = append(list, h)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var out []*gedcom.Node
+	for _, h := range list {
+		r := &gedcom.Node{Xref: fmt.Sprintf("H%d", h.id), Tag: "_HEIRLOOM"}
+		add(r, "NAME", h.name)
+		add(r, "TYPE", h.kind)
+		add(r, "_DESC", h.desc)
+		ex.date(r, h.made)
+		if h.place.Valid {
+			if pi, ok := ex.places[h.place.Int64]; ok {
+				add(r, "PLAC", pi.fullName)
+			}
+		}
+		add(r, "_LOC", h.loc)
+		add(r, "NOTE", h.notes)
+		crow, err := ex.s.DB.QueryContext(ctx, `
+			SELECT person_id, from_date_raw, to_date_raw, how, notes FROM heirloom_custody WHERE heirloom_id = ? ORDER BY sort_order, id`, h.id)
+		if err != nil {
+			return nil, err
+		}
+		for crow.Next() {
+			var pid sql.NullInt64
+			var from, to, how, notes string
+			if err := crow.Scan(&pid, &from, &to, &how, &notes); err != nil {
+				crow.Close()
+				return nil, err
+			}
+			c := node("_CUST", "")
+			if pid.Valid && ex.included[pid.Int64] {
+				c = pointer("_CUST", personXref(pid.Int64))
+			}
+			add(c, "_FROM", from)
+			add(c, "_TO", to)
+			add(c, "TYPE", how)
+			add(c, "NOTE", notes)
+			r.Children = append(r.Children, c)
+		}
+		crow.Close()
+		ex.citations(r, "heirloom", h.id)
+		ex.mediaRefs(r, "heirloom", h.id)
+		out = append(out, r)
+		ex.out.Counts["heirlooms"]++
+	}
+	return out, nil
 }

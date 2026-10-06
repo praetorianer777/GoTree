@@ -39,6 +39,8 @@ var countQueries = []struct{ kind, query string }{
 	{"sources", `SELECT count(*) FROM sources WHERE tree_id = ?`},
 	{"repositories", `SELECT count(*) FROM repositories WHERE tree_id = ?`},
 	{"citations", `SELECT count(*) FROM citations WHERE tree_id = ?`},
+	{"heirlooms", `SELECT count(*) FROM heirlooms WHERE tree_id = ?`},
+	{"custody", `SELECT count(*) FROM heirloom_custody c JOIN heirlooms h ON h.id = c.heirloom_id WHERE h.tree_id = ?`},
 }
 
 func (s *Store) treeCounts(ctx context.Context, treeID int64) (map[string]int, error) {

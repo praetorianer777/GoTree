@@ -489,10 +489,10 @@ function LinkLabel({ link }: { link: MediaLink }) {
       name: link.label || t('person.unknown'),
     })
   }
-  if (link.entityType === 'source') {
+  if (link.entityType === 'source' || link.entityType === 'heirloom') {
     return (
       <Link
-        to={`/sources/${link.entityId}`}
+        to={`/${link.entityType === 'source' ? 'sources' : 'heirlooms'}/${link.entityId}`}
         className="text-brand-700 underline underline-offset-4 dark:text-brand-100"
       >
         {text}
