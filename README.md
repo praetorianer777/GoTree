@@ -46,9 +46,19 @@ Behind a reverse proxy, terminate TLS there and forward `X-Forwarded-Proto: http
 cookie is marked secure. Failed logins are throttled per client address; GoTree sees the proxy's
 address, so the limit then applies to all clients together.
 
-Everything lives in the data directory (the database and `media/` with the uploaded files); back
-it up and you have backed up GoTree. Behind a reverse proxy, allow request bodies as large as the
-upload limit.
+Behind a reverse proxy, allow request bodies as large as the upload limit.
+
+### Backup and restore
+
+Everything lives in the data directory: the database `gotree.db` and `media/` with the uploaded
+files. Administrators can download both as one zip under **Import & export → Backup**; the
+database in it is a consistent snapshot taken while GoTree keeps running. Copying the data
+directory works too, but only while GoTree is stopped, since the database may have changes in
+its `-wal` file that a copy taken mid-write would miss.
+
+To restore, stop GoTree, unzip the backup into an empty data directory (so that `gotree.db` and
+`media/` sit directly in it) and start GoTree again. Thumbnails are not in the backup; they are
+made again when first shown.
 
 ## Development
 

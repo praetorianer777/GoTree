@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Dark mode follows a class on <html> so the user can override the system
+   setting; public/theme.js sets it before the first paint. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-50: #eef8fb;
   --color-brand-100: #d5eef5;
@@ -12,6 +16,14 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
   :focus-visible {
     outline: 3px solid var(--color-brand-500);
     outline-offset: 2px;

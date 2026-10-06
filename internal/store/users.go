@@ -22,6 +22,10 @@ type User struct {
 	Role        string `json:"role"`
 }
 
+// UserRoleAdmin is the role of users who manage the whole instance, such
+// as downloading backups.
+const UserRoleAdmin = "admin"
+
 // Session is an authenticated browser session.
 type Session struct {
 	User   User
@@ -112,7 +116,7 @@ func (s *Store) Setup(ctx context.Context, in SetupInput) (User, error) {
 		if _, err := tx.ExecContext(ctx, `INSERT INTO tree_members (tree_id, user_id, role) VALUES (?, ?, 'owner')`, tid, uid); err != nil {
 			return err
 		}
-		u = User{ID: uid, Username: in.Username, DisplayName: in.DisplayName, Role: "admin"}
+		u = User{ID: uid, Username: in.Username, DisplayName: in.DisplayName, Role: UserRoleAdmin}
 		return nil
 	})
 	return u, err
