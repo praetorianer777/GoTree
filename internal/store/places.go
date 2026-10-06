@@ -200,9 +200,18 @@ func placeRefs(ctx context.Context, q queryer, a Actor, ids []int64) (map[int64]
 
 // CreatePlace adds a place.
 func (s *Store) CreatePlace(ctx context.Context, a Actor, in PlaceInput) (Place, error) {
+	var p Place
+	err := s.tx(ctx, func(tx *sql.Tx) (err error) {
+		p, err = s.createPlaceTx(ctx, tx, a, in)
+		return err
+	})
+	return p, err
+}
+
+func (s *Store) createPlaceTx(ctx context.Context, tx *sql.Tx, a Actor, in PlaceInput) (Place, error) {
 	in.normalize()
 	var p Place
-	err := s.tx(ctx, func(tx *sql.Tx) error {
+	err := func() error {
 		if err := s.validatePlace(ctx, tx, a, 0, in); err != nil {
 			return err
 		}
@@ -219,7 +228,7 @@ func (s *Store) CreatePlace(ctx context.Context, a Actor, in PlaceInput) (Place,
 			return err
 		}
 		return s.logChange(ctx, tx, a, "place", id, "create", nil, p)
-	})
+	}()
 	return p, err
 }
 

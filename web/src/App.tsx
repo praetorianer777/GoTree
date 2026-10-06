@@ -8,6 +8,8 @@ import { PersonPage } from './pages/PersonPage'
 import { QualityPage } from './pages/QualityPage'
 import { RelationshipPage } from './pages/RelationshipPage'
 import { ResearchPage } from './pages/ResearchPage'
+import { TranscribePage } from './pages/TranscribePage'
+import { TranscriptionPage } from './pages/TranscriptionPage'
 import { SharingPage } from './pages/SharingPage'
 import { ShareApp } from './share/ShareApp'
 import { ImportExportPage } from './pages/ImportExportPage'
@@ -43,6 +45,9 @@ function AuthedApp() {
           <Route path="relationship" element={<RelationshipPage />} />
           <Route path="quality" element={<QualityPage />} />
           <Route path="research" element={<ResearchPage />} />
+          <Route path="transcribe" element={<TranscribePage />} />
+          <Route path="transcribe/new" element={<TranscriptionPage />} />
+          <Route path="transcribe/:id" element={<TranscriptionPage />} />
           <Route path="sharing" element={<SharingPage />} />
           <Route path="import-export" element={<ImportExportPage />} />
           <Route path="*" element={<NotFound />} />
