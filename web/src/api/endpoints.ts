@@ -46,6 +46,8 @@ import type {
   Heirloom,
   HeirloomInput,
   HeirloomRef,
+  MapData,
+  Stats,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -185,3 +187,7 @@ export const getHeirloom = (id: number, signal?: AbortSignal) => getJSON<Heirloo
 export const createHeirloom = (input: HeirloomInput) => postJSON<Heirloom>('/heirlooms', input)
 export const updateHeirloom = (id: number, input: HeirloomInput) => putJSON<Heirloom>(`/heirlooms/${id}`, input)
 export const deleteHeirloom = (id: number) => del(`/heirlooms/${id}`)
+
+export const getStats = (signal?: AbortSignal) => getJSON<Stats>('/stats', signal)
+export const getMapData = (scope: 'all' | 'ancestors' | 'descendants', root: number | null, signal?: AbortSignal) =>
+  getJSON<MapData>(`/map?${qs({ scope, root: root ?? 0 })}`, signal)

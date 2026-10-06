@@ -64,6 +64,8 @@ export function Dashboard() {
               ['/media', 'nav.media'],
               ['/heirlooms', 'nav.heirlooms'],
               ['/chart', 'nav.chart'],
+              ['/map', 'nav.map'],
+              ['/stats', 'nav.stats'],
               ['/transcribe', 'nav.transcribe'],
               ['/research', 'nav.research'],
               ['/relationship', 'nav.relationship'],

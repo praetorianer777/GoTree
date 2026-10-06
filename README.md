@@ -48,6 +48,9 @@ address, so the limit then applies to all clients together.
 
 Behind a reverse proxy, allow request bodies as large as the upload limit.
 
+The migration map loads its background tiles from openstreetmap.org in the browser; everything
+else GoTree shows comes from your own server.
+
 ### Backup and restore
 
 Everything lives in the data directory: the database `gotree.db` and `media/` with the uploaded

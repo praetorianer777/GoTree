@@ -9,6 +9,12 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Statistics: lifespan by decade of birth, age at first and later marriages, children per family,
+  the most common surnames and given names and how given names changed by decade, each chart with
+  its numbers; migration map: watch the family move through their dated events on an
+  OpenStreetMap map with a year slider and play button, for everyone or the ancestors or
+  descendants of a person, with a table of who was where in the chosen year (#38)
+
 - Heirlooms: record objects handed down in the family with what they are, when and where they were
   made and where they are now, a timeline of who held them and how they got them, photos and
   sources; each person page lists the heirlooms they held, and GEDCOM files carry them as
