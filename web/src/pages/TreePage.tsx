@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { getTree, listPersons } from '../api/endpoints'
@@ -13,9 +13,27 @@ import { indexGraph } from '../tree/model'
 import { PersonPanel } from '../tree/PersonPanel'
 import { TreeCanvas } from '../tree/TreeCanvas'
 import { TreeList } from '../tree/TreeList'
+import type { TreeLook } from '../tree/nodeTypes'
 
 const views: TreeView[] = ['pedigree', 'descendants', 'hourglass', 'family']
 const rootKey = 'gotree.treeRoot'
+const lookKey = 'gotree.treeLook'
+
+function storedLook(): TreeLook {
+  try {
+    return localStorage.getItem(lookKey) === 'plain' ? 'plain' : 'leafy'
+  } catch {
+    return 'leafy'
+  }
+}
+
+function saveLook(look: TreeLook) {
+  try {
+    localStorage.setItem(lookKey, look)
+  } catch {
+    // Without storage the choice lasts until the page is reloaded.
+  }
+}
 
 function remembered(): number | null {
   try {
@@ -30,6 +48,7 @@ export function TreePage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const genId = useId()
+  const [look, setLook] = useState<TreeLook>(storedLook)
   const modeName = useId()
 
   const view = (views.includes(params.get('view') as TreeView) ? params.get('view') : 'pedigree') as TreeView
@@ -152,6 +171,21 @@ export function TreePage() {
             />
             {t('tree.bloodOnly')}
           </label>
+          {mode === 'chart' && (
+            <label className="flex min-h-11 items-center gap-2">
+              <input
+                type="checkbox"
+                className="size-5"
+                checked={look === 'leafy'}
+                onChange={(e) => {
+                  const next = e.target.checked ? 'leafy' : 'plain'
+                  setLook(next)
+                  saveLook(next)
+                }}
+              />
+              {t('tree.leafy')}
+            </label>
+          )}
         </div>
       </div>
 
@@ -188,6 +222,7 @@ export function TreePage() {
                 selectedId={selectedId}
                 onSelect={(id) => set({ sel: String(id) })}
                 onCenter={centerOn}
+                look={look}
               />
             </div>
           ) : (

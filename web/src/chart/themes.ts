@@ -21,14 +21,34 @@ export interface ChartTheme {
   band: boolean
   /** A double frame around the page. */
   frame: boolean
+  /** Branches with leaves instead of lines, rounded cards and hearts for couples. */
+  leafy: boolean
 }
 
 const sans = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 const serif = "Georgia, 'Palatino Linotype', 'Book Antiqua', Palatino, serif"
 
-export type ChartThemeName = 'classic' | 'heritage' | 'modern'
+export type ChartThemeName = 'tree' | 'classic' | 'heritage' | 'modern'
 
 export const chartThemes: Record<ChartThemeName, ChartTheme> = {
+  tree: {
+    paper: '#f7f3e6',
+    ink: '#2f2416',
+    muted: '#5a4a35',
+    line: '#7a5534',
+    card: '#fffdf5',
+    cardStroke: '#4d8a3e',
+    root: '#9a5b13',
+    rootFill: '#fdf3dc',
+    avatar: '#e3edd5',
+    avatarInk: '#2f4a26',
+    sex: { F: '#a8485e', M: '#3d6b8c', X: '#6d5a8a' },
+    font: serif,
+    titleFont: serif,
+    band: false,
+    frame: true,
+    leafy: true,
+  },
   classic: {
     paper: '#ffffff',
     ink: '#0f172a',
@@ -45,6 +65,7 @@ export const chartThemes: Record<ChartThemeName, ChartTheme> = {
     titleFont: sans,
     band: false,
     frame: false,
+    leafy: false,
   },
   heritage: {
     paper: '#fbf6ea',
@@ -62,6 +83,7 @@ export const chartThemes: Record<ChartThemeName, ChartTheme> = {
     titleFont: serif,
     band: false,
     frame: true,
+    leafy: false,
   },
   modern: {
     paper: '#ffffff',
@@ -79,5 +101,6 @@ export const chartThemes: Record<ChartThemeName, ChartTheme> = {
     titleFont: sans,
     band: true,
     frame: false,
+    leafy: false,
   },
 }
