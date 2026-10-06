@@ -1,21 +1,11 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { createTask } from '../api/endpoints'
 import type { CheckReport, Finding } from '../api/types'
+import { Button } from '../components/Button'
 import { fullName } from '../lib/people'
-
-/** The finding as a sentence, with the people named. */
-function useFindingText() {
-  const { t } = useTranslation()
-  return (f: Finding, persons: CheckReport['persons']) => {
-    const name = (id?: number) => (id && persons[id] ? fullName(persons[id]) : null) ?? t('person.unknown')
-    return t(`quality.rule.${f.rule}`, {
-      person: name(f.personId),
-      other: name(f.otherPersonId),
-      event: f.eventType ? t(`eventType.${f.eventType}`, { defaultValue: f.eventType }) : '',
-      years: f.years,
-    })
-  }
-}
+import { useFindingText } from './findingText'
 
 interface Props {
   report: CheckReport
@@ -26,6 +16,26 @@ interface Props {
 export function FindingList({ report, currentPersonId }: Props) {
   const { t } = useTranslation()
   const text = useFindingText()
+  const queryClient = useQueryClient()
+  const makeTask = useMutation({
+    mutationFn: (f: Finding) =>
+      createTask({
+        title: text(f, report.persons),
+        status: 'open',
+        priority: f.severity === 'error' ? 'high' : 'normal',
+        dueOn: '',
+        notes: '',
+        origin: f.origin,
+        links: [f.personId, f.otherPersonId]
+          .filter((id): id is number => id !== undefined)
+          .map((id) => ({ entityType: 'person' as const, entityId: id })),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['checks'] })
+      void queryClient.invalidateQueries({ queryKey: ['person'] })
+      void queryClient.invalidateQueries({ queryKey: ['research'] })
+    },
+  })
   return (
     <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
       {report.findings.map((f, i) => {
@@ -44,7 +54,7 @@ export function FindingList({ report, currentPersonId }: Props) {
             >
               {t(`quality.severity_${f.severity}`)}
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p>{text(f, report.persons)}</p>
               {people.length > 0 && (
                 <p className="flex flex-wrap gap-x-4 text-sm">
@@ -60,6 +70,21 @@ export function FindingList({ report, currentPersonId }: Props) {
                 </p>
               )}
             </div>
+            {report.taskIds[f.origin] ? (
+              <Link to="/research" className="inline-flex min-h-11 shrink-0 items-center text-sm text-slate-600 underline dark:text-slate-400">
+                {t('research.taskExists')}
+              </Link>
+            ) : (
+              <Button
+                variant="ghost"
+                className="shrink-0"
+                busy={makeTask.isPending && makeTask.variables?.origin === f.origin}
+                onClick={() => makeTask.mutate(f)}
+              >
+                {t('research.makeTask')}
+                <span className="sr-only">: {text(f, report.persons)}</span>
+              </Button>
+            )}
           </li>
         )
       })}

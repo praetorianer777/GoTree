@@ -17,10 +17,11 @@ const person = (id: number, givenNames: string, sex: PersonRef['sex'] = 'U'): Pe
 
 const checks: CheckReport = {
   findings: [
-    { rule: 'birth_after_death', severity: 'error', personId: 1 },
-    { rule: 'parent_too_young', severity: 'warning', personId: 2, otherPersonId: 1, familyId: 5, years: 9 },
+    { origin: 'check:birth_after_death:1:0:0', rule: 'birth_after_death', severity: 'error', personId: 1 },
+    { origin: 'check:parent_too_young:2:0:1', rule: 'parent_too_young', severity: 'warning', personId: 2, otherPersonId: 1, familyId: 5, years: 9 },
   ],
   persons: { 1: person(1, 'Anna', 'F'), 2: person(2, 'Paul', 'M') },
+  taskIds: {},
 }
 
 const proposals: DateProposals = {

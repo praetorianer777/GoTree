@@ -9,6 +9,12 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Research tasks and a research log: plan what to find out (status, priority, due date, linked
+  people, sources and places) and record every search with where and when, including the ones that
+  found nothing; a missing or unsourced birth, a missing death or any data-quality problem becomes
+  a task with one click; open tasks show on the home page, and each person page lists their tasks,
+  searches and suggestions (#30)
+
 - Calendar of birthdays, wedding anniversaries and remembrance days to subscribe to in any
   calendar app, through a secret address that can be withdrawn; living people only when chosen
   (#25)
