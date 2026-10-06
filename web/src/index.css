@@ -4,15 +4,29 @@
    setting; public/theme.js sets it before the first paint. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* The palette of a tree: forest green as the main colour, and neutrals
+   that run from parchment and bark in the light theme to a dark forest
+   floor in the dark one. Redefining slate restyles every page at once. */
 @theme {
-  --color-brand-50: #eef8fb;
-  --color-brand-100: #d5eef5;
-  --color-brand-500: #1d7fa3;
-  --color-brand-600: #0f6a8d;
-  --color-brand-700: #0f5c7a;
-  --color-brand-800: #0c4a62;
-  --color-leaf-500: #2a9d8f;
-  --color-leaf-600: #23867a;
+  --color-brand-50: #eef5e9;
+  --color-brand-100: #d6e8cc;
+  --color-brand-500: #4d8b3f;
+  --color-brand-600: #3c7432;
+  --color-brand-700: #2f5e29;
+  --color-brand-800: #244a20;
+  --color-slate-50: #faf7ef;
+  --color-slate-100: #f2ede0;
+  --color-slate-200: #e4dccb;
+  --color-slate-300: #cdc3ad;
+  --color-slate-400: #a59a82;
+  --color-slate-500: #7b715f;
+  --color-slate-600: #5d5444;
+  --color-slate-700: #463e31;
+  --color-slate-800: #2a3128;
+  --color-slate-900: #1b221c;
+  --color-slate-950: #0f1510;
+  --color-leaf-500: #4f8f3f;
+  --color-leaf-600: #3f7d3a;
 }
 
 @layer base {
