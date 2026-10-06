@@ -4,7 +4,7 @@ import { fullName, lifespan } from '../lib/people'
 import type { LayoutNode, TreeLayout } from '../tree/layout'
 import type { TreeIndex } from '../tree/model'
 import { branchEnds, growBranch, growCanopy, growTrunk, HEART_PATH, LEAF_PATH, lightPalette } from '../tree/branches'
-import { BranchArt, CanopyArt, TrunkArt } from '../tree/Nature'
+import { BranchArt, CanopyArt, TextureDefs, TrunkArt } from '../tree/Nature'
 import { bounds, elbow, photoUrl } from './geometry'
 import { MARGIN_MM, TITLE_MM, type Fit } from './paper'
 import { chartThemes, type ChartThemeName } from './themes'
@@ -61,6 +61,7 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
       className="h-auto w-full bg-white"
     >
       <title>{title}</title>
+      {th.leafy && <TextureDefs palette={lightPalette} />}
       <rect width={fit.paperW} height={fit.paperH} fill={th.paper} />
       {th.frame && (
         <g fill="none" stroke={th.line}>
@@ -126,7 +127,6 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
         </g>
       )}
       <g transform={`translate(${fit.x} ${fit.y}) scale(${fit.scale}) translate(${-b.minX} ${-b.minY})`}>
-        {th.leafy && <CanopyArt canopy={growCanopy(layout, { x: 0, y: 0 })} palette={lightPalette} />}
         <g fill="none" stroke={th.line} strokeWidth={2} strokeLinecap="round">
           {layout.edges.map((e) => {
             const s = byId.get(e.source)
@@ -150,6 +150,7 @@ export const WallChart = forwardRef<SVGSVGElement, Props>(function WallChart(
             )
           })}
         </g>
+        {th.leafy && <CanopyArt canopy={growCanopy(layout, { x: 0, y: 0 })} palette={lightPalette} />}
         {layout.nodes.map((n) => {
           if (n.kind === 'canopy') return null
           if (n.kind === 'trunk') {
