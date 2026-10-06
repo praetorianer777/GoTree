@@ -73,15 +73,15 @@ export function Layout() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-dvh bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-dvh bg-white text-slate-900 print:min-h-0 dark:bg-slate-950 dark:text-slate-100">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-brand-700 focus:px-4 focus:py-3 focus:text-white"
+        className="sr-only print:hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-brand-700 focus:px-4 focus:py-3 focus:text-white"
       >
         {t('app.skipToContent')}
       </a>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
+      <header className="sticky top-0 z-30 flex print:hidden h-14 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <img src="/icons/logo-64.png" alt="" width={32} height={32} className="size-8 rounded-md" />
         <span className="text-lg font-semibold text-brand-700 dark:text-brand-100">{t('app.name')}</span>
         {auth.data?.tree && (
@@ -104,7 +104,7 @@ export function Layout() {
       <div className="md:flex">
         <nav
           aria-label={t('app.mainNavigation')}
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950 md:sticky md:top-14 md:h-[calc(100dvh-3.5rem)] md:w-60 md:shrink-0 md:border-t-0 md:border-r md:pb-0"
+          className="fixed inset-x-0 bottom-0 z-30 print:hidden border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950 md:sticky md:top-14 md:h-[calc(100dvh-3.5rem)] md:w-60 md:shrink-0 md:border-t-0 md:border-r md:pb-0"
         >
           <ul className="grid grid-cols-5 md:flex md:flex-col md:gap-1 md:p-3">
             {navItems.map(({ to, key, Icon, end, phone }) => (
@@ -133,7 +133,7 @@ export function Layout() {
           id="main"
           ref={mainRef}
           tabIndex={-1}
-          className="min-w-0 flex-1 px-4 pt-6 pb-24 focus:outline-none md:px-8 md:pb-8"
+          className="min-w-0 flex-1 px-4 pt-6 pb-24 focus:outline-none md:px-8 md:pb-8 print:p-0"
         >
           <Outlet />
         </main>

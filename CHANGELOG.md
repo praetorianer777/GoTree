@@ -9,6 +9,10 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Wall chart: ancestors, descendants or both as a print-ready chart on A4 to A0, Letter, Tabloid
+  or a custom size, fitted to the page with a warning when names get too small, with photos and a
+  title; print it or save it as PDF from the browser, or download a standalone SVG (#34)
+
 - Source-first transcription: copy a census household, baptism, marriage, burial, death or any
   other record into a grid, or define your own record templates; each person is matched against
   the tree, also across spelling variants (Meyer, Maier, Mayr), and adding the record creates the

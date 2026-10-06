@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router'
 import { AuthGate } from './auth/AuthGate'
 import { Layout } from './components/Layout'
+import { ChartPage } from './pages/ChartPage'
 import { Dashboard } from './pages/Dashboard'
 import { NotFound } from './pages/NotFound'
 import { PeoplePage } from './pages/PeoplePage'
@@ -38,6 +39,7 @@ function AuthedApp() {
           <Route path="people" element={<PeoplePage />} />
           <Route path="people/:id" element={<PersonPage />} />
           <Route path="tree" element={<TreePage />} />
+          <Route path="chart" element={<ChartPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="sources/:id" element={<SourcePage />} />
           <Route path="media" element={<MediaListPage />} />

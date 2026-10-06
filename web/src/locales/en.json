@@ -20,7 +20,8 @@
     "relationship": "Relationships",
     "sharing": "Sharing",
     "research": "Research",
-    "transcribe": "Transcribe"
+    "transcribe": "Transcribe",
+    "chart": "Wall chart"
   },
   "dashboard": {
     "title": "Welcome to GoTree",
@@ -934,5 +935,35 @@
     "appliedFacts_other": "{{count}} further facts",
     "appliedPeople_one": "{{count}} new person",
     "appliedPeople_other": "{{count}} new people"
+  },
+  "chart": {
+    "title": "Wall chart",
+    "intro": "Print the tree on paper up to A0, or save it as a PDF or SVG. Choose a person, the kind of chart and the paper; the chart is fitted to the page.",
+    "root": "Chart for",
+    "pickRoot": "Choose a person to start the chart.",
+    "paper": "Paper",
+    "custom": "Custom size",
+    "widthMm": "Width (mm)",
+    "heightMm": "Height (mm)",
+    "orientation": "Orientation",
+    "orientation_auto": "Automatic",
+    "orientation_portrait": "Portrait",
+    "orientation_landscape": "Landscape",
+    "chartTitle": "Title on the chart",
+    "photos": "Show photos",
+    "summary_one": "{{count}} person on {{paper}}",
+    "summary_other": "{{count}} people on {{paper}}",
+    "textSize": "names in {{pt}} pt",
+    "tooSmall": "Names will be printed in {{pt}} pt, which is hard to read. Choose larger paper or fewer generations.",
+    "print": "Print or save as PDF",
+    "downloadSvg": "Download SVG",
+    "imageLabel_one": "{{title}}: chart of {{count}} person",
+    "imageLabel_other": "{{title}}: chart of {{count}} people",
+    "defaultTitle": {
+      "pedigree": "Ancestors of {{name}}",
+      "descendants": "Descendants of {{name}}",
+      "hourglass": "Family of {{name}}"
+    },
+    "printChart": "Print as wall chart"
   }
 }
