@@ -7,7 +7,8 @@
     "logOut": "Log out",
     "signedInAs": "Signed in as {{name}}",
     "updateReady": "A new version of GoTree is ready.",
-    "reload": "Reload now"
+    "reload": "Reload now",
+    "gopherCredit": "Logo based on the Go gopher by <author>Renée French</author>, licensed under <license>CC BY 4.0</license>."
   },
   "nav": {
     "dashboard": "Home",

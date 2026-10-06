@@ -93,4 +93,5 @@ for Linux, macOS and Windows and a multi-arch Docker image.
 [AGPL-3.0](LICENSE)
 
 The logo builds on the Go gopher, designed by [Renée French](https://reneefrench.blogspot.com/) and
-licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [NOTICE](NOTICE); the app
+shows the same credit on the login page, in the sidebar and on share links.

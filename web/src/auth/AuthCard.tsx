@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { GopherCredit } from '../components/GopherCredit'
 import { PageHeading } from '../components/PageHeading'
 
 export function AuthCard({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
@@ -19,6 +20,7 @@ export function AuthCard({ title, intro, children }: { title: string; intro?: st
           {intro && <p className="text-slate-700 dark:text-slate-300">{intro}</p>}
         </div>
         {children}
+        <GopherCredit className="border-t border-slate-200 pt-4 dark:border-slate-800" />
       </div>
     </main>
   )

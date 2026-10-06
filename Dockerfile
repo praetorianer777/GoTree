@@ -26,7 +26,10 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
  && mkdir -p /out/data
 
 FROM gcr.io/distroless/static-debian12:nonroot
+LABEL org.opencontainers.image.licenses="AGPL-3.0-only AND CC-BY-4.0"
 COPY --from=go /out/gotree /gotree
+# The logo's CC BY 4.0 attribution travels with the image.
+COPY LICENSE NOTICE /usr/share/doc/gotree/
 # Created here so the volume starts out owned by the nonroot user.
 COPY --from=go --chown=nonroot:nonroot /out/data /data
 ENV GOTREE_DATA_DIR=/data GOTREE_LISTEN_ADDR=:8080
