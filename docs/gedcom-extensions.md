@@ -24,3 +24,56 @@ partners or has no `PEDI` value.
 `<fact>._STAT <status>` with an optional `NOTE` giving the reason — marks a fact (event, attribute
 or name) as `disputed` or `disproven`. GoTree keeps such facts instead of deleting them; programs
 that do not know the tag still see the fact itself.
+
+## _heirloom
+
+`0 @H1@ _HEIRLOOM` — an object handed down in the family, as a record of its own:
+
+```
+0 @H1@ _HEIRLOOM
+1 NAME Pocket watch
+1 TYPE jewellery
+1 _DESC Silver, engraved J.W.
+1 DATE ABT 1880
+1 PLAC Leipzig, Sachsen, Deutschland
+1 _LOC Paul's desk
+1 NOTE Repaired in 1950.
+1 _CUST @I12@
+2 _FROM 1920
+2 _TO 1965
+2 TYPE inherited
+1 _CUST
+2 _FROM 1965
+2 TYPE purchased
+2 NOTE a dealer in Halle
+1 SOUR @S3@
+2 PAGE § 3
+1 OBJE @O7@
+```
+
+`NAME` is the object, `TYPE` its kind (`jewellery`, `furniture`, `document`, `photo_album`, `tool`,
+`textile`, `other`), `DATE` and `PLAC` when and where it was made, `NOTE` free notes, `SOUR` and
+`OBJE` sources and photos as for any record.
+
+## _desc
+
+`_HEIRLOOM._DESC` — what the object looks like.
+
+## _loc
+
+`_HEIRLOOM._LOC` — where the object is now, as free text.
+
+## _cust
+
+`_HEIRLOOM._CUST [@I…@]` — one holder of the object, in order. The pointer is left out when the
+holder is not in the file (not in the tree, or a living person left out for privacy); a `NOTE` then
+says who it was. `TYPE` is how they got it: `inherited`, `gift`, `purchased`, `made`, `found` or
+`other`.
+
+## _from
+
+`_HEIRLOOM._CUST._FROM` — since when the holder had the object, as GEDCOM date text.
+
+## _to
+
+`_HEIRLOOM._CUST._TO` — until when.

@@ -102,3 +102,10 @@ export const TranscribeIcon = () => (
     <path d="M8 8h8M8 12h8M8 16h5" />
   </Icon>
 )
+
+export const HeirloomIcon = () => (
+  <Icon>
+    <circle cx="12" cy="13" r="7" />
+    <path d="M12 9.5V13l2.5 1.5M10 3h4M12 3v3" />
+  </Icon>
+)

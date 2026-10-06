@@ -338,7 +338,7 @@ export interface MediaRegion {
 }
 
 export interface MediaLink {
-  entityType: 'person' | 'event' | 'family' | 'source'
+  entityType: 'person' | 'event' | 'family' | 'source' | 'heirloom'
   entityId: number
   label: string
   personId: number | null
@@ -674,4 +674,61 @@ export interface ApplyResult extends Transcription {
   familyId?: number
   created: number[]
   facts: number
+}
+
+export type HeirloomKind = 'jewellery' | 'furniture' | 'document' | 'photo_album' | 'tool' | 'textile' | 'other'
+export type CustodyHow = 'inherited' | 'gift' | 'purchased' | 'made' | 'found' | 'other'
+
+export interface Custody {
+  id: number
+  person: PersonRef | null
+  fromDate: string
+  toDate: string
+  how: CustodyHow
+  notes: string
+}
+
+export interface CustodyInput {
+  personId: number | null
+  fromDate: string
+  toDate: string
+  how: CustodyHow
+  notes: string
+}
+
+export interface Heirloom {
+  id: number
+  name: string
+  kind: HeirloomKind
+  description: string
+  madeDate: string
+  originPlace: PlaceRef | null
+  currentLocation: string
+  notes: string
+  custody: Custody[]
+  citations: CitationRef[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface HeirloomRef {
+  id: number
+  name: string
+  kind: HeirloomKind
+  madeDate: string
+  holder: PersonRef | null
+  photoId: number | null
+}
+
+export interface HeirloomInput {
+  name: string
+  kind: HeirloomKind
+  description: string
+  madeDate: string
+  originPlaceId: number | null
+  currentLocation: string
+  notes: string
+  custody: CustodyInput[]
+  addCitations?: NewCitation[]
+  removeCitations?: number[]
 }

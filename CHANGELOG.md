@@ -9,6 +9,11 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Heirlooms: record objects handed down in the family with what they are, when and where they were
+  made and where they are now, a timeline of who held them and how they got them, photos and
+  sources; each person page lists the heirlooms they held, and GEDCOM files carry them as
+  documented _HEIRLOOM records that GoTree reads back (#36)
+
 - Wall chart: ancestors, descendants or both as a print-ready chart on A4 to A0, Letter, Tabloid
   or a custom size, fitted to the page with a warning when names get too small, with photos and a
   title; print it or save it as PDF from the browser, or download a standalone SVG (#34)

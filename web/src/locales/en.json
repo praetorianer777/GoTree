@@ -21,7 +21,8 @@
     "sharing": "Sharing",
     "research": "Research",
     "transcribe": "Transcribe",
-    "chart": "Wall chart"
+    "chart": "Wall chart",
+    "heirlooms": "Heirlooms"
   },
   "dashboard": {
     "title": "Welcome to GoTree",
@@ -513,7 +514,9 @@
       "places": "Places",
       "sources": "Sources",
       "repositories": "Archives",
-      "citations": "Citations"
+      "citations": "Citations",
+      "heirlooms": "Heirlooms",
+      "custody": "Heirloom holders"
     }
   },
   "relationship": {
@@ -965,5 +968,59 @@
       "hourglass": "Family of {{name}}"
     },
     "printChart": "Print as wall chart"
+  },
+  "heirloom": {
+    "intro": "Objects handed down in the family — a watch, a chest, a family Bible — with who held them and how they got them.",
+    "new": "New heirloom",
+    "edit": "Edit heirloom",
+    "delete": "Delete heirloom",
+    "deleteConfirm": "Delete “{{name}}”? Its photos stay in the media list.",
+    "search": "Search heirlooms",
+    "count_one": "{{count}} heirloom",
+    "count_other": "{{count}} heirlooms",
+    "none": "No heirlooms recorded yet.",
+    "name": "Name",
+    "kind": "Kind",
+    "description": "Description",
+    "madeDate": "Made",
+    "origin": "Made in",
+    "currentLocation": "Where it is now",
+    "notes": "Notes",
+    "kinds": {
+      "jewellery": "Jewellery",
+      "furniture": "Furniture",
+      "document": "Document",
+      "photo_album": "Photo album",
+      "tool": "Tool",
+      "textile": "Textile",
+      "other": "Other object"
+    },
+    "custody": "Who held it",
+    "noCustody": "No holders recorded.",
+    "addHolder": "Add a holder",
+    "holder": "Holder {{n}}",
+    "removeHolder": "Remove holder {{n}}",
+    "moveUp": "Move holder {{n}} up",
+    "person": "Person",
+    "notInTree": "Someone not in the tree",
+    "notInTreeHint": "Say who in the notes, e.g. “sold to a dealer in Halle”.",
+    "from": "From",
+    "to": "Until",
+    "how": "How they got it",
+    "ways": {
+      "inherited": "inherited",
+      "gift": "as a gift",
+      "purchased": "bought",
+      "made": "made it",
+      "found": "found it",
+      "other": "other"
+    },
+    "period": "{{from}} – {{to}}",
+    "since": "since {{from}}",
+    "until": "until {{to}}",
+    "heldBy": "held by {{name}}",
+    "forPerson": "Heirlooms",
+    "personNone": "No heirlooms held.",
+    "photos": "Photos"
   }
 }

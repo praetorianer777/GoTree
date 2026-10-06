@@ -3,6 +3,8 @@ import { AuthGate } from './auth/AuthGate'
 import { Layout } from './components/Layout'
 import { ChartPage } from './pages/ChartPage'
 import { Dashboard } from './pages/Dashboard'
+import { HeirloomPage } from './pages/HeirloomPage'
+import { HeirloomsPage } from './pages/HeirloomsPage'
 import { NotFound } from './pages/NotFound'
 import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
@@ -42,6 +44,8 @@ function AuthedApp() {
           <Route path="chart" element={<ChartPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="sources/:id" element={<SourcePage />} />
+          <Route path="heirlooms" element={<HeirloomsPage />} />
+          <Route path="heirlooms/:id" element={<HeirloomPage />} />
           <Route path="media" element={<MediaListPage />} />
           <Route path="media/:id" element={<MediaPage />} />
           <Route path="relationship" element={<RelationshipPage />} />
