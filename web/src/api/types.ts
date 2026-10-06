@@ -516,3 +516,14 @@ export interface DayReport {
   events: DayEvent[]
   persons: Record<number, PersonRef>
 }
+
+export interface CalendarFeed {
+  id: number
+  label: string
+  includeLiving: boolean
+  revokedAt: string | null
+  lastUsedAt: string | null
+  createdAt: string
+  /** Only present right after creating the feed. */
+  token?: string
+}

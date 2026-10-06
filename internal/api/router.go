@@ -65,6 +65,7 @@ func (s *Server) Handler() http.Handler {
 			r.Get("/export/verify", s.verifyExport)
 			r.Get("/backup", s.backup)
 			s.shareLinkRoutes(r)
+			s.calendarFeedRoutes(r)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
@@ -75,6 +76,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	})
 
+	r.Get("/ical/{file}", s.icalFeed)
 	r.Handle("/*", spaHandler(s.Frontend))
 	return r
 }

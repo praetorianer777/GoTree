@@ -33,6 +33,7 @@ describe('sharing page', () => {
     let sent: unknown
     mockApi({
       'GET /api/share-links': [200, [link]],
+      'GET /api/calendar-feeds': [200, []],
       'POST /api/share-links': (body) => {
         sent = body
         return [
@@ -59,6 +60,31 @@ describe('sharing page', () => {
     expect(await screen.findByRole('heading', { name: 'Share link “Aunt Erna” is ready' })).toBeInTheDocument()
     expect(screen.getByLabelText('Share link')).toHaveValue(`${window.location.origin}/share/tok123`)
     expect(sent).toEqual({ label: 'Aunt Erna', scope: 'tree', rootPersonId: null, privacy: 'deceased', expiresOn: '' })
+  })
+})
+
+describe('calendar feeds', () => {
+  it('creates a calendar address with living people', async () => {
+    let sent: unknown
+    mockApi({
+      'GET /api/share-links': [200, []],
+      'GET /api/calendar-feeds': [200, []],
+      'POST /api/calendar-feeds': (body) => {
+        sent = body
+        return [201, { id: 1, label: 'My phone', includeLiving: true, revokedAt: null, lastUsedAt: null, createdAt: '', token: 'cal1' }]
+      },
+    })
+    const { container } = renderApp('/sharing')
+    fireEvent.click(await screen.findByRole('button', { name: '+ New calendar address' }))
+    const dialog = screen.getByRole('dialog', { name: 'New calendar address' })
+    fireEvent.change(within(dialog).getByLabelText(/^Name/), { target: { value: 'My phone' } })
+    fireEvent.click(within(dialog).getByLabelText('Include living people'))
+    fireEvent.click(within(dialog).getByRole('button', { name: /Create address/ }))
+
+    expect(await screen.findByLabelText('Calendar address')).toHaveValue(`${window.location.origin}/ical/cal1.ics`)
+    expect(screen.getByRole('link', { name: 'Open in calendar app' }).getAttribute('href')).toMatch(/^webcal:\/\/.*\/ical\/cal1\.ics$/)
+    expect(sent).toEqual({ label: 'My phone', includeLiving: true })
+    expect(await axeViolations(container)).toEqual([])
   })
 })
 

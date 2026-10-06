@@ -2,9 +2,7 @@ package store
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"errors"
 	"strings"
 	"time"
@@ -89,13 +87,12 @@ func (s *Store) CreateShareLink(ctx context.Context, a Actor, in ShareLinkInput)
 		return ShareLink{}, err
 	}
 
-	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
+	token, err := newToken()
+	if err != nil {
 		return ShareLink{}, err
 	}
-	token := base64.RawURLEncoding.EncodeToString(raw)
 	var link ShareLink
-	err := s.tx(ctx, func(tx *sql.Tx) error {
+	err = s.tx(ctx, func(tx *sql.Tx) error {
 		res, err := tx.ExecContext(ctx, `
 			INSERT INTO share_links (tree_id, token_hash, label, scope, root_person_id, privacy, expires_at, created_at, created_by)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
