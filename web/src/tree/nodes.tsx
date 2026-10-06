@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next'
 import type { PersonRef } from '../api/types'
 import { fullName, lifespan } from '../lib/people'
 import { Avatar } from '../media/Avatar'
-import { HEART_PATH, LEAF_PATH } from './branches'
+import { useMemo } from 'react'
+import { useDark } from '../lib/theme'
+import { type Blob, darkPalette, growTrunk, HEART_PATH, LEAF_PATH, lightPalette, TRUNK } from './branches'
+import { CanopyArt, TrunkArt } from './Nature'
 import type { TreeLook } from './nodeTypes'
 
 export interface PersonNodeData extends Record<string, unknown> {
@@ -68,10 +71,11 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
           'nodrag relative flex h-16 w-[180px] items-center gap-2 pr-2 text-left transition-[box-shadow,translate] duration-150 hover:-translate-y-px',
           leafy
             ? [
-                'rounded-full pl-2 shadow-md shadow-[#7a5534]/20 hover:shadow-lg',
+                'rounded-full pl-2 hover:brightness-105',
+                'bg-linear-to-b shadow-[inset_0_0_0_3px_rgb(255_253_245),inset_0_0_0_4px_rgb(201_180_143)] dark:shadow-[inset_0_0_0_3px_rgb(26_22_16),inset_0_0_0_4px_rgb(110_88_60)]',
                 data.root
-                  ? 'border-[3px] border-amber-700 bg-amber-50 dark:border-amber-400 dark:bg-[#2a2010]'
-                  : 'border-2 border-[#4d8a3e] bg-[#fffdf5] dark:border-[#86b55a] dark:bg-[#14201a]',
+                  ? 'border-[3px] border-amber-700 from-amber-50 to-[#f6e7c4] dark:border-amber-400 dark:from-[#2e2412] dark:to-[#1f180c]'
+                  : 'border-2 border-[#7a5534] from-[#fffdf5] to-[#f3ead3] dark:border-[#a98260] dark:from-[#221c14] dark:to-[#18140e]',
               ].join(' ')
             : [
                 'overflow-hidden rounded-2xl pl-3.5 shadow-md shadow-slate-900/10 hover:shadow-lg dark:shadow-black/40',
@@ -88,7 +92,7 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
           accent[p.sex] && <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-1.5 ${accent[p.sex]}`} />
         )}
         <span
-          className={`rounded-full ring-2 ${leafy ? 'ring-[#86b55a] dark:ring-[#4d8a3e]' : 'ring-white dark:ring-slate-800'}`}
+          className={`rounded-full ring-2 ${leafy ? 'ring-[#c9b48f] dark:ring-[#6e583c]' : 'ring-white dark:ring-slate-800'}`}
         >
           <Avatar person={p} size={40} />
         </span>
@@ -118,12 +122,16 @@ export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
   )
 }
 
-/** Two leaves on the card's top edge. */
+/** A few leaves on the card's top edge, as if it hung in the foliage. */
 function Sprig() {
+  const p = lightPalette
   return (
-    <svg aria-hidden="true" viewBox="-14 -10 28 14" className="pointer-events-none absolute -top-2.5 right-6 h-4 w-8">
-      <path d={LEAF_PATH} transform="rotate(-150) scale(0.9)" fill="#3f7d3a" />
-      <path d={LEAF_PATH} transform="rotate(-30) scale(1.05)" fill="#5b9a46" />
+    <svg aria-hidden="true" viewBox="-17 -13 34 16" className="pointer-events-none absolute -top-3 right-5 h-5 w-10">
+      <g stroke={p.leafEdge} strokeWidth={0.5}>
+        <path d={LEAF_PATH} transform="rotate(-155) scale(0.9)" fill={p.leaves[1]} />
+        <path d={LEAF_PATH} transform="rotate(-25) scale(1)" fill={p.leaves[3]} />
+        <path d={LEAF_PATH} transform="rotate(-95) scale(0.75)" fill={p.leaves[4]} />
+      </g>
     </svg>
   )
 }
@@ -190,3 +198,34 @@ export function RepeatNode({ data }: NodeProps<Node<RepeatNodeData>>) {
   )
 }
 
+
+export function TrunkNode() {
+  const dark = useDark()
+  const shape = useMemo(() => growTrunk('trunk'), [])
+  return (
+    <svg
+      aria-hidden="true"
+      width={TRUNK.w}
+      height={TRUNK.h}
+      viewBox={`${-TRUNK.w / 2} 0 ${TRUNK.w} ${TRUNK.h}`}
+      className="pointer-events-none overflow-visible"
+    >
+      <TrunkArt shape={shape} palette={dark ? darkPalette : lightPalette} />
+    </svg>
+  )
+}
+
+export interface CanopyNodeData extends Record<string, unknown> {
+  blobs: Blob[]
+  w: number
+  h: number
+}
+
+export function CanopyNode({ data }: NodeProps<Node<CanopyNodeData>>) {
+  const dark = useDark()
+  return (
+    <svg aria-hidden="true" width={data.w} height={data.h} className="pointer-events-none overflow-visible">
+      <CanopyArt blobs={data.blobs} palette={dark ? darkPalette : lightPalette} />
+    </svg>
+  )
+}

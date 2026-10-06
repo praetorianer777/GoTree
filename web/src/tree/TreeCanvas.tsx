@@ -15,8 +15,9 @@ import { useDark } from '../lib/theme'
 import type { LayoutNode, TreeLayout } from './layout'
 import type { TreeIndex } from './model'
 import type { BranchEdgeData } from './BranchEdge'
+import { growCanopy, withTrunk } from './branches'
 import { edgeTypes, nodeTypes, type TreeLook } from './nodeTypes'
-import type { PersonNodeData, RepeatNodeData } from './nodes'
+import type { CanopyNodeData, PersonNodeData, RepeatNodeData } from './nodes'
 
 interface Props {
   layout: TreeLayout
@@ -112,7 +113,21 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
 
   const nodes: Node[] = useMemo(
     () =>
-      layout.nodes.map((n): Node => {
+      (look === 'leafy' ? withTrunk(layout) : layout).nodes.map((n): Node => {
+        if (n.kind === 'canopy') {
+          const data: CanopyNodeData = { blobs: growCanopy(layout, { x: n.x, y: n.y }), w: n.w, h: n.h }
+          return {
+            id: n.id,
+            type: n.kind,
+            position: { x: n.x, y: n.y },
+            width: n.w,
+            height: n.h,
+            data,
+            selectable: false,
+            focusable: false,
+            zIndex: -2,
+          }
+        }
         const base = { id: n.id, position: { x: n.x, y: n.y }, width: n.w, height: n.h, type: n.kind }
         if (n.kind === 'person') {
           const data: PersonNodeData = {
@@ -138,6 +153,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
           }
           return { ...base, data }
         }
+        if (n.kind === 'trunk') return { ...base, data: {}, selectable: false, focusable: false, zIndex: -1 }
         return { ...base, data: { look } }
       }),
     // onKey and reveal only read layout-derived values that are deps here.

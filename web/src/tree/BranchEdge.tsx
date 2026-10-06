@@ -1,12 +1,15 @@
 import type { Edge, EdgeProps } from '@xyflow/react'
-import { branchEnds, branchPath, LEAF_PATH, leafColors, leavesAlong } from './branches'
+import { useMemo } from 'react'
+import { useDark } from '../lib/theme'
+import { branchEnds, darkPalette, growBranch, lightPalette } from './branches'
+import { BranchArt } from './Nature'
 
 export interface BranchEdgeData extends Record<string, unknown> {
   /** The vertical centre of the root person, where the trunk is thickest. */
   rootY: number
 }
 
-/** A connector drawn as a tapering branch with a few leaves; decoration only. */
+/** A connector drawn as a growing branch; decoration only. */
 export function BranchEdge({
   id,
   source,
@@ -17,24 +20,17 @@ export function BranchEdge({
   targetY,
   data,
 }: EdgeProps<Edge<BranchEdgeData>>) {
-  const { from, to, wFrom, wTo } = branchEnds(
-    { x: sourceX, y: sourceY },
-    { x: targetX, y: targetY },
-    source.startsWith('f'),
-    target.startsWith('f'),
-    data?.rootY ?? 0,
-  )
-  return (
-    <g aria-hidden="true">
-      <path d={branchPath(from, to, wFrom, wTo)} className="fill-[#7a5534] dark:fill-[#a98260]" />
-      {leavesAlong(from, to, id, (wFrom + wTo) / 2).map((l) => (
-        <path
-          key={`${l.x},${l.y}`}
-          d={LEAF_PATH}
-          transform={`translate(${l.x} ${l.y}) rotate(${l.angle}) scale(${l.scale})`}
-          fill={leafColors[l.shade]}
-        />
-      ))}
-    </g>
-  )
+  const dark = useDark()
+  const rootY = data?.rootY ?? 0
+  const shape = useMemo(() => {
+    const { from, to, wFrom, wTo } = branchEnds(
+      { x: sourceX, y: sourceY },
+      { x: targetX, y: targetY },
+      source.startsWith('f'),
+      target.startsWith('f'),
+      rootY,
+    )
+    return growBranch(from, to, wFrom, wTo, id)
+  }, [id, source, target, sourceX, sourceY, targetX, targetY, rootY])
+  return <BranchArt shape={shape} palette={dark ? darkPalette : lightPalette} />
 }
