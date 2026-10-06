@@ -58,6 +58,7 @@ func (s *Server) Handler() http.Handler {
 			s.resourceRoutes(r)
 			s.sourceRoutes(r)
 			s.mediaRoutes(r)
+			s.qualityRoutes(r)
 			r.Post("/import/gedcom", s.importGEDCOM)
 			r.Get("/export/gedcom", s.exportGEDCOM)
 			r.Get("/export/verify", s.verifyExport)

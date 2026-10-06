@@ -23,6 +23,10 @@ import type {
   RegionInput,
   ImportReport,
   VerifyReport,
+  CheckReport,
+  DateChange,
+  DateProposals,
+  RelationshipReport,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -94,3 +98,11 @@ export type Privacy = 'all' | 'exclude-living' | 'name-only'
 export const exportUrl = (version: ExportVersion, privacy: Privacy, format: 'ged' | 'gedzip') =>
   `/api/export/gedcom?${qs({ version, privacy, format })}`
 export const verifyExport = (version: ExportVersion) => getJSON<VerifyReport>(`/export/verify?${qs({ version })}`)
+
+export const getChecks = (personId: number | null, signal?: AbortSignal) =>
+  getJSON<CheckReport>(`/checks${personId ? `?${qs({ person: personId })}` : ''}`, signal)
+export const getDateProposals = (signal?: AbortSignal) => getJSON<DateProposals>('/dates/proposals', signal)
+export const normalizeDates = (changes: DateChange[]) =>
+  postJSON<{ updated: number; skipped: number }>('/dates/normalize', { changes })
+export const getRelationship = (a: number, b: number, signal?: AbortSignal) =>
+  getJSON<RelationshipReport>(`/relationship?${qs({ a, b })}`, signal)

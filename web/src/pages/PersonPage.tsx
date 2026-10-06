@@ -3,7 +3,7 @@ import { useId, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError } from '../api/client'
-import { deletePerson, getPerson } from '../api/endpoints'
+import { deletePerson, getChecks, getPerson } from '../api/endpoints'
 import type { ChildRelation, Family, PersonDetail, PersonRef, Relation } from '../api/types'
 import { Button } from '../components/Button'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -22,6 +22,7 @@ import { CitationText } from '../sources/CitationEditor'
 import { Avatar } from '../media/Avatar'
 import { Gallery } from '../media/Gallery'
 import { UploadButton } from '../media/UploadButton'
+import { FindingList } from '../quality/FindingList'
 
 type Open =
   | { kind: 'edit' }
@@ -36,6 +37,11 @@ export function PersonPage() {
   const id = Number(useParams().id)
   const person = useQuery({ queryKey: ['person', id], queryFn: ({ signal }) => getPerson(id, signal) })
   const [open, setOpen] = useState<Open>(null)
+  const checks = useQuery({
+    queryKey: ['person', id, 'checks'],
+    queryFn: ({ signal }) => getChecks(id, signal),
+    enabled: person.isSuccess,
+  })
 
   useShortcuts(
     {
@@ -89,6 +95,12 @@ export function PersonPage() {
               {t('common.edit')}
               <span className="sr-only"> ({t('shortcuts.key', { key: 'e' })})</span>
             </Button>
+            <Link
+              to={`/relationship?a=${p.id}`}
+              className="inline-flex min-h-11 items-center rounded-lg px-3 font-medium text-brand-700 underline dark:text-brand-100"
+            >
+              {t('person.relationshipLink')}
+            </Link>
             <Button variant="ghost" onClick={() => setOpen({ kind: 'delete' })}>
               {t('person.delete')}
             </Button>
@@ -104,6 +116,12 @@ export function PersonPage() {
           </ul>
         )}
       </header>
+
+      {checks.data && checks.data.findings.length > 0 && (
+        <Section title={t('quality.forPerson')}>
+          <FindingList report={checks.data} currentPersonId={p.id} />
+        </Section>
+      )}
 
       <Section
         title={t('person.events')}

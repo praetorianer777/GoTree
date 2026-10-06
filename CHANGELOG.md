@@ -9,6 +9,14 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Data quality: GoTree checks the tree for dates that contradict each other (born after death,
+  parents too young or too old, events after a burial, marriages outside a lifetime) and for dates
+  it cannot read, on a data quality page and on each person's page; vague dates only count when
+  every reading of them is impossible. “Tidy up dates” rewrites dates such as “12.3.1850”,
+  “ca. 1850” or “March 12, 1850” in standard GEDCOM form after a preview where each row can be
+  left out. The relationship calculator names how two people are related (cousins with removals,
+  half and step relations, in-laws, pedigree collapse) and shows the line connecting them (#21)
+
 - GEDCOM export as 5.5.1 or 7.0, optionally zipped with all photos and documents, with everyone,
   living people by name only, or without living people; everything an import could not use is
   written back, and “Check the export” reads the file back to show that nothing was lost (#19)
