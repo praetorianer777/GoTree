@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ApiError } from '../api/client'
+import { ApiError, getAuthState } from '../api/client'
 import { importGedcom, listPersons } from '../api/endpoints'
 import { Button } from '../components/Button'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -16,7 +16,30 @@ export function ImportExportPage() {
       <PageHeading title={t('nav.importExport')}>{t('nav.importExport')}</PageHeading>
       <ExportSection />
       <ImportSection />
+      <BackupSection />
     </div>
+  )
+}
+
+function BackupSection() {
+  const { t } = useTranslation()
+  const id = useId()
+  const auth = useQuery({ queryKey: ['auth'], queryFn: ({ signal }) => getAuthState(signal), staleTime: Infinity })
+  if (auth.data?.user?.role !== 'admin') return null
+  return (
+    <section aria-labelledby={id} className="space-y-3">
+      <h2 id={id} className="text-xl font-semibold">
+        {t('backup.title')}
+      </h2>
+      <p className="text-slate-700 dark:text-slate-300">{t('backup.intro')}</p>
+      <a
+        href="/api/backup"
+        download
+        className="inline-flex min-h-11 items-center rounded-lg bg-brand-700 px-4 font-medium text-white hover:bg-brand-800"
+      >
+        {t('backup.download')}
+      </a>
+    </section>
   )
 }
 

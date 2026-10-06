@@ -6,6 +6,7 @@ import { getAuthState, logout } from '../api/client'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { Button } from './Button'
 import { ShortcutsHelp } from './ShortcutsHelp'
+import { ThemeSwitch } from './ThemeSwitch'
 import { UpdateNotice } from './UpdateNotice'
 import { CheckIcon, HomeIcon, LinkIcon, PeopleIcon, PhotoIcon, SourceIcon, TransferIcon, TreeIcon } from './icons'
 
@@ -84,7 +85,8 @@ export function Layout() {
           <span className="hidden truncate text-slate-600 sm:inline dark:text-slate-400">· {auth.data.tree.name}</span>
         )}
         {user && (
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <ThemeSwitch />
             <span className="sr-only">{t('app.signedInAs', { name: user.displayName || user.username })}</span>
             <span aria-hidden="true" className="hidden text-sm text-slate-600 sm:inline dark:text-slate-400">
               {user.displayName || user.username}

@@ -646,5 +646,16 @@
       "married_after_death": "Married after death",
       "invalid_date": "Unreadable date"
     }
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "backup": {
+    "title": "Backup",
+    "intro": "Download everything — all trees, accounts, photos and documents — as one zip file. Keep it somewhere safe; RESTORE.txt inside explains how to bring it back. A GEDCOM export is for other programs, this backup is for GoTree.",
+    "download": "Download backup"
   }
 }

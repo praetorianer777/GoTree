@@ -9,6 +9,10 @@ and the versioning [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Backup: administrators download the database (a consistent snapshot taken while GoTree runs)
+  and all photos and documents as one zip, with restore instructions inside; light, dark or
+  system theme, chosen in the header and remembered per browser (#23)
+
 - Data quality: GoTree checks the tree for dates that contradict each other (born after death,
   parents too young or too old, events after a burial, marriages outside a lifetime) and for dates
   it cannot read, on a data quality page and on each person's page; vague dates only count when
