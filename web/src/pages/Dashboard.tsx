@@ -62,6 +62,7 @@ export function Dashboard() {
           {(
             [
               ['/media', 'nav.media'],
+              ['/chart', 'nav.chart'],
               ['/transcribe', 'nav.transcribe'],
               ['/research', 'nav.research'],
               ['/relationship', 'nav.relationship'],

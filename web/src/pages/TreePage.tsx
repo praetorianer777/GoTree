@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useId, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { getTree, listPersons } from '../api/endpoints'
 import type { PersonRef } from '../api/types'
 import { SelectField } from '../components/Field'
@@ -98,7 +98,17 @@ export function TreePage() {
 
   return (
     <div className="space-y-4">
-      <PageHeading title={title}>{title}</PageHeading>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeading title={title}>{title}</PageHeading>
+        {rootId !== null && (
+          <Link
+            to={`/chart?root=${rootId}`}
+            className="inline-flex min-h-11 items-center font-medium text-brand-700 underline dark:text-brand-100"
+          >
+            {t('chart.printChart')}
+          </Link>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <SelectField label={t('tree.view')} value={view} onChange={(e) => set({ view: e.target.value })}>
