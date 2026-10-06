@@ -732,3 +732,46 @@ export interface HeirloomInput {
   addCitations?: NewCitation[]
   removeCitations?: number[]
 }
+
+export interface Average {
+  count: number
+  average: number
+}
+
+export interface NameCount {
+  name: string
+  count: number
+}
+
+export interface Stats {
+  persons: number
+  families: number
+  withLifespan: number
+  lifespans: { decade: number; count: number; average: number; min: number; max: number }[]
+  marriages: { decade: number; firstMen: Average; firstWomen: Average; later: Average }[]
+  childrenHistogram: number[]
+  childrenAverage: number
+  surnames: NameCount[]
+  givenNames: NameCount[]
+  givenNameTrends: { decade: number; men: NameCount[]; women: NameCount[] }[]
+}
+
+export interface MapPlace {
+  name: string
+  lat: number
+  lng: number
+  approximate: boolean
+}
+
+export interface MapTrack {
+  personId: number
+  points: { key: number; placeId: number; type: string }[]
+  death: number
+}
+
+export interface MapData {
+  tracks: MapTrack[]
+  places: Record<number, MapPlace>
+  persons: Record<number, PersonRef>
+  unmapped: number
+}

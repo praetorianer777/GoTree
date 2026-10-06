@@ -109,3 +109,16 @@ export const HeirloomIcon = () => (
     <path d="M12 9.5V13l2.5 1.5M10 3h4M12 3v3" />
   </Icon>
 )
+
+export const MapIcon = () => (
+  <Icon>
+    <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />
+    <path d="M9 3v15M15 6v15" />
+  </Icon>
+)
+
+export const ChartIcon = () => (
+  <Icon>
+    <path d="M4 20V10M10 20V4M16 20v-7M21 20H3" />
+  </Icon>
+)

@@ -1,0 +1,61 @@
+import { fireEvent, screen, within } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import type { MapData, PersonRef } from '../api/types'
+import { axeViolations } from '../test/axe'
+import { mockApi, renderApp } from '../test/render'
+import { positionsAt, yearRange } from './positions'
+
+// jsdom has no layout for Leaflet; the table carries the same content.
+vi.mock('./MapView', () => ({ default: () => <div data-testid="map" /> }))
+
+const person = (id: number, givenNames: string): PersonRef => ({
+  id,
+  givenNames,
+  surname: 'Weber',
+  sex: 'U',
+  birthDate: '',
+  deathDate: '',
+  living: false,
+  portrait: null,
+})
+
+const data: MapData = {
+  places: {
+    1: { name: 'Kleindorf, Sachsen', lat: 51, lng: 13, approximate: true },
+    2: { name: 'Leipzig, Sachsen', lat: 51.34, lng: 12.37, approximate: false },
+  },
+  persons: { 7: person(7, 'Hans'), 8: person(8, 'Paul') },
+  tracks: [
+    { personId: 7, points: [{ key: 18500000, placeId: 1, type: 'BIRT' }, { key: 18800000, placeId: 2, type: 'RESI' }], death: 19200000 },
+    { personId: 8, points: [{ key: 18850301, placeId: 2, type: 'BIRT' }], death: 0 },
+  ],
+  unmapped: 3,
+}
+
+describe('map positions', () => {
+  it('moves people with their events and ends at death', () => {
+    expect(yearRange(data, 2026)).toEqual([1850, 1920])
+    expect([...positionsAt(data, 1850)]).toEqual([[1, [7]]])
+    expect([...positionsAt(data, 1879)]).toEqual([[1, [7]]])
+    expect([...positionsAt(data, 1885)]).toEqual([[2, [7, 8]]])
+    expect([...positionsAt(data, 1921)]).toEqual([[2, [8]]])
+    // Without a death, a person leaves the map a century after their first event.
+    expect(positionsAt(data, 1986).size).toBe(0)
+  })
+})
+
+describe('map page', () => {
+  it('lists who was where in the chosen year', async () => {
+    mockApi({ 'GET /api/map': [200, data] })
+    const { container } = renderApp('/map')
+    const slider = await screen.findByRole('slider', { name: /Year/ })
+    expect(screen.getByText('1 person on the map in 1850.')).toBeInTheDocument()
+    fireEvent.change(slider, { target: { value: '1890' } })
+    const table = screen.getByRole('table')
+    const rows = within(table).getAllByRole('row')
+    expect(rows[1]).toHaveTextContent('Leipzig, SachsenHans WeberPaul Weber')
+    expect(screen.getByRole('heading', { name: 'Who was where in 1890' })).toBeInTheDocument()
+    expect(screen.getByText(/3 events are at places without coordinates/)).toBeInTheDocument()
+    expect(await axeViolations(container)).toEqual([])
+  })
+})
