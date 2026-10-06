@@ -23,6 +23,7 @@ import { Avatar } from '../media/Avatar'
 import { Gallery } from '../media/Gallery'
 import { UploadButton } from '../media/UploadButton'
 import { FindingList } from '../quality/FindingList'
+import { ResearchPanel } from '../research/ResearchPanel'
 
 type Open =
   | { kind: 'edit' }
@@ -237,6 +238,10 @@ export function PersonPage() {
 
       <Section title={t('media.section')} actions={<UploadButton owner={{ entityType: 'person', entityId: p.id }} />}>
         <Gallery owner={{ entityType: 'person', entityId: p.id }} />
+      </Section>
+
+      <Section title={t('research.forPerson')}>
+        <ResearchPanel person={{ id: p.id, label: name }} headingLevel={3} />
       </Section>
 
       {p.citations.length > 0 && (

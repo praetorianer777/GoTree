@@ -13,8 +13,22 @@ import (
 
 // CheckReport lists the consistency findings with the people they name.
 type CheckReport struct {
-	Findings []check.Finding     `json:"findings"`
+	Findings []FindingView       `json:"findings"`
 	Persons  map[int64]PersonRef `json:"persons"`
+	// TaskIDs maps the origin of findings that became research tasks to
+	// the task.
+	TaskIDs map[string]int64 `json:"taskIds"`
+}
+
+// FindingView is a finding with the origin a research task made from it
+// carries.
+type FindingView struct {
+	check.Finding
+	Origin string `json:"origin"`
+}
+
+func findingOrigin(f check.Finding) string {
+	return fmt.Sprintf("check:%s:%d:%d:%d", f.Rule, f.PersonID, f.EventID, f.OtherPersonID)
 }
 
 // bloodRelations are child relations that count as descent.
@@ -127,17 +141,20 @@ func (s *Store) Checks(ctx context.Context, a Actor, personID int64) (CheckRepor
 		d.Families = append(d.Families, cf)
 	}
 
-	report := CheckReport{Findings: []check.Finding{}}
+	report := CheckReport{Findings: []FindingView{}}
 	var ids []int64
 	for _, f := range check.Run(d, s.Now()) {
 		if personID != 0 && f.PersonID != personID && f.OtherPersonID != personID {
 			continue
 		}
-		report.Findings = append(report.Findings, f)
+		report.Findings = append(report.Findings, FindingView{Finding: f, Origin: findingOrigin(f)})
 		ids = append(ids, f.PersonID)
 		if f.OtherPersonID != 0 {
 			ids = append(ids, f.OtherPersonID)
 		}
+	}
+	if report.TaskIDs, err = s.taskOrigins(ctx, a, "check:"); err != nil {
+		return CheckReport{}, err
 	}
 	report.Persons, err = s.personRefsChunked(ctx, a, ids)
 	return report, err

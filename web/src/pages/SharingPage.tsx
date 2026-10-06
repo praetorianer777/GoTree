@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -104,7 +105,7 @@ export function SharingPage() {
   )
 }
 
-function describe(t: ReturnType<typeof useTranslation>['t'], l: ShareLink): string {
+function describe(t: TFunction, l: ShareLink): string {
   const day = (iso: string) => new Date(iso).toLocaleDateString()
   const scope =
     l.scope === 'tree'

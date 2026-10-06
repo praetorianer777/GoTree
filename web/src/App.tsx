@@ -7,6 +7,7 @@ import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
 import { QualityPage } from './pages/QualityPage'
 import { RelationshipPage } from './pages/RelationshipPage'
+import { ResearchPage } from './pages/ResearchPage'
 import { SharingPage } from './pages/SharingPage'
 import { ShareApp } from './share/ShareApp'
 import { ImportExportPage } from './pages/ImportExportPage'
@@ -41,6 +42,7 @@ function AuthedApp() {
           <Route path="media/:id" element={<MediaPage />} />
           <Route path="relationship" element={<RelationshipPage />} />
           <Route path="quality" element={<QualityPage />} />
+          <Route path="research" element={<ResearchPage />} />
           <Route path="sharing" element={<SharingPage />} />
           <Route path="import-export" element={<ImportExportPage />} />
           <Route path="*" element={<NotFound />} />

@@ -87,3 +87,11 @@ export const ShareIcon = () => (
     <path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" />
   </Icon>
 )
+
+export const ResearchIcon = () => (
+  <Icon>
+    <circle cx="10.5" cy="10.5" r="6" />
+    <path d="m15 15 6 6" />
+    <path d="M8 10.5h5M10.5 8v5" />
+  </Icon>
+)

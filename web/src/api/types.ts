@@ -410,6 +410,8 @@ export type CheckRule =
   | 'invalid_date'
 
 export interface Finding {
+  /** Identifies the finding; a research task made from it carries it. */
+  origin: string
   rule: CheckRule
   severity: 'error' | 'warning'
   personId: number
@@ -423,6 +425,8 @@ export interface Finding {
 export interface CheckReport {
   findings: Finding[]
   persons: Record<number, PersonRef>
+  /** Origins of findings that became research tasks, with the task id. */
+  taskIds: Record<string, number>
 }
 
 export interface DateProposal {
@@ -526,4 +530,78 @@ export interface CalendarFeed {
   createdAt: string
   /** Only present right after creating the feed. */
   token?: string
+}
+
+export type ResearchEntity = 'person' | 'source' | 'place'
+export type TaskStatus = 'open' | 'in_progress' | 'done'
+export type TaskPriority = 'low' | 'normal' | 'high'
+export type SearchResult = 'found' | 'not_found' | 'partial'
+
+export interface ResearchLink {
+  entityType: ResearchEntity
+  entityId: number
+  label: string
+}
+
+export type ResearchLinkInput = Omit<ResearchLink, 'label'>
+
+export interface ResearchTask {
+  id: number
+  title: string
+  status: TaskStatus
+  priority: TaskPriority
+  dueOn: string
+  notes: string
+  origin: string
+  doneAt: string | null
+  links: ResearchLink[]
+  logCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ResearchTaskInput {
+  title: string
+  status: TaskStatus
+  priority: TaskPriority
+  dueOn: string
+  notes: string
+  origin: string
+  links: ResearchLinkInput[]
+}
+
+export interface LogEntry {
+  id: number
+  taskId: number | null
+  taskTitle: string
+  searchedOn: string
+  query: string
+  location: string
+  result: SearchResult
+  notes: string
+  links: ResearchLink[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface LogEntryInput {
+  taskId: number | null
+  searchedOn: string
+  query: string
+  location: string
+  result: SearchResult
+  notes: string
+  links: ResearchLinkInput[]
+}
+
+export interface Suggestion {
+  origin: string
+  kind: 'missing_birth' | 'birth_unsourced' | 'missing_death' | 'finding'
+  personId: number
+  finding?: Finding
+}
+
+export interface SuggestionReport {
+  suggestions: Suggestion[]
+  persons: Record<number, PersonRef>
 }

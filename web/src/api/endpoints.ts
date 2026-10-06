@@ -32,6 +32,11 @@ import type {
   ShareLink,
   ShareLinkInput,
   CalendarFeed,
+  LogEntry,
+  LogEntryInput,
+  ResearchTask,
+  ResearchTaskInput,
+  SuggestionReport,
 } from './types'
 
 const qs = (params: Record<string, string | number>) =>
@@ -136,3 +141,18 @@ export const listCalendarFeeds = (signal?: AbortSignal) => getJSON<CalendarFeed[
 export const createCalendarFeed = (input: { label: string; includeLiving: boolean }) =>
   postJSON<CalendarFeed>('/calendar-feeds', input)
 export const revokeCalendarFeed = (id: number) => del(`/calendar-feeds/${id}`)
+
+export type ResearchQuery = { status?: string; person?: number; task?: number; limit?: number }
+const researchQs = (f: ResearchQuery) =>
+  qs(Object.fromEntries(Object.entries(f).filter(([, v]) => v !== undefined && v !== '')) as Record<string, string | number>)
+
+export const listTasks = (f: ResearchQuery, signal?: AbortSignal) => getJSON<ResearchTask[]>(`/research/tasks?${researchQs(f)}`, signal)
+export const createTask = (input: ResearchTaskInput) => postJSON<ResearchTask>('/research/tasks', input)
+export const updateTask = (id: number, input: ResearchTaskInput) => putJSON<ResearchTask>(`/research/tasks/${id}`, input)
+export const deleteTask = (id: number) => del(`/research/tasks/${id}`)
+export const listLog = (f: ResearchQuery, signal?: AbortSignal) => getJSON<LogEntry[]>(`/research/log?${researchQs(f)}`, signal)
+export const createLogEntry = (input: LogEntryInput) => postJSON<LogEntry>('/research/log', input)
+export const updateLogEntry = (id: number, input: LogEntryInput) => putJSON<LogEntry>(`/research/log/${id}`, input)
+export const deleteLogEntry = (id: number) => del(`/research/log/${id}`)
+export const getSuggestions = (personId: number, signal?: AbortSignal) =>
+  getJSON<SuggestionReport>(`/research/suggestions?${qs({ person: personId })}`, signal)
