@@ -14,11 +14,8 @@ import { useTranslation } from 'react-i18next'
 import { useDark } from '../lib/theme'
 import type { LayoutNode, TreeLayout } from './layout'
 import type { TreeIndex } from './model'
-import type { BranchEdgeData } from './BranchEdge'
-import { darkPalette, growCanopy, lightPalette, withTrunk } from './branches'
-import { TextureDefs } from './Nature'
 import { edgeTypes, nodeTypes, type TreeLook } from './nodeTypes'
-import type { CanopyNodeData, PersonNodeData, RepeatNodeData } from './nodes'
+import type { PersonNodeData, RepeatNodeData } from './nodes'
 
 interface Props {
   layout: TreeLayout
@@ -114,20 +111,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
 
   const nodes: Node[] = useMemo(
     () =>
-      (look === 'leafy' ? withTrunk(layout) : layout).nodes.map((n): Node => {
-        if (n.kind === 'canopy') {
-          const data: CanopyNodeData = { canopy: growCanopy(layout, { x: n.x, y: n.y }), w: n.w, h: n.h }
-          return {
-            id: n.id,
-            type: n.kind,
-            position: { x: n.x, y: n.y },
-            width: n.w,
-            height: n.h,
-            data,
-            selectable: false,
-            focusable: false,
-          }
-        }
+      layout.nodes.map((n): Node => {
         const base = { id: n.id, position: { x: n.x, y: n.y }, width: n.w, height: n.h, type: n.kind }
         if (n.kind === 'person') {
           const data: PersonNodeData = {
@@ -153,7 +137,6 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
           }
           return { ...base, data }
         }
-        if (n.kind === 'trunk') return { ...base, data: {}, selectable: false, focusable: false, zIndex: -1 }
         return { ...base, data: { look } }
       }),
     // onKey and reveal only read layout-derived values that are deps here.
@@ -161,11 +144,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
     [layout, index, selectedId, focusId, rootId, onSelect, onCenter, look],
   )
   const edges: Edge[] = useMemo(() => {
-    if (look === 'leafy') {
-      const root = byPerson.get(rootId)
-      const data: BranchEdgeData = { rootY: root ? center(root).y : 0 }
-      return layout.edges.map((e) => ({ ...e, type: 'branch', focusable: false, data }))
-    }
+    if (look === 'leafy') return layout.edges.map((e) => ({ ...e, type: 'vine', focusable: false }))
     return layout.edges.map((e) => ({
       ...e,
       type: 'smoothstep',
@@ -173,7 +152,7 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
       focusable: false,
       style: { strokeWidth: 2, stroke: dark ? '#94a3b8' : '#64748b' },
     }))
-  }, [layout, dark, look, byPerson, rootId])
+  }, [layout, dark, look])
   const leafy = look === 'leafy'
 
   // Re-frame the chart whenever a different tree is shown.
@@ -184,11 +163,6 @@ function Canvas({ layout, index, selectedId, onSelect, onCenter, look = 'leafy' 
 
   return (
     <div role="group" aria-label={t('tree.chartLabel')} aria-describedby={helpId} className="size-full">
-      {leafy && (
-        <svg aria-hidden="true" width={0} height={0} className="absolute">
-          <TextureDefs palette={dark ? darkPalette : lightPalette} />
-        </svg>
-      )}
       <p id={helpId} className="sr-only">
         {t('tree.chartHelp')}
       </p>
